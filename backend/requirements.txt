@@ -1,0 +1,16 @@
+# Backend Dependencies
+
+## Node.js Packages
+- express: ^5.2.1
+- axios: ^1.13.2
+- cors: ^2.8.5
+- dotenv: ^17.2.3
+
+## Installation
+Run: npm install
+
+## Start Server
+Run: npm start
+
+## API Endpoints
+- GET /api/leetcode/:username - Fetch LeetCode user statistics

@@ -11,7 +11,7 @@ Effortlessly manage progress across competitive programming platforms.
 [![GitHub Stars](https://img.shields.io/github/stars/Yugenjr/GrindMap?style=social)](https://github.com/Yugenjr/GrindMap)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
 
-[Live Demo](#) • [Documentation](#) • [Contributing](#contributing) • [Issues](../../issues)
+[Live Demo](#-interactive-demo) • [Documentation](#) • [Contributing](#contributing) • [Issues](../../issues)
 
 </div>
 
@@ -26,6 +26,36 @@ Effortlessly manage progress across competitive programming platforms.
 - 🔥 **Streak Tracking**: Monitor your daily coding consistency
 - 🎨 **Beautiful UI**: Modern, responsive interface built with React
 - 🔧 **Customizable**: Easy to extend and customize for your needs
+
+## 🎯 Interactive Demo
+
+**Try GrindMap without any setup!**
+
+Experience all features with sample data:
+
+1. Start the application: `npm start`
+2. Click the **"View Demo"** button on the main page
+3. Explore platform statistics, heatmaps, and activity tracking
+
+### What You'll See:
+
+- 📊 **Live Statistics** from LeetCode, CodeForces, and CodeChef
+- 🔄 **Circular Progress Rings** showing completion percentages
+- 📅 **Activity Heatmap** displaying submission patterns
+- ✅ **Daily Activity Tracker** for consistency monitoring
+- 👁️ **Expandable Cards** with detailed platform insights
+
+For a detailed demo guide, see [DEMO.md](DEMO.md)
+
+### Visual Preview
+
+*Screenshots and demo videos coming soon!*
+
+<!-- Add screenshots here:
+![Dashboard Overview](./public/screenshots/dashboard.png)
+![Platform Details](./public/screenshots/platform-details.png)
+![Activity Heatmap](./public/screenshots/heatmap.png)
+-->
 
 ## 🚀 Quick Start
 

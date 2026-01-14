@@ -2,8 +2,10 @@ import React, { useState } from 'react';
 import './App.css';
 import CircularProgress from './components/CircularProgress';
 import ActivityHeatmap from './components/ActivityHeatmap';
+import DemoPage from './components/DemoPage';
 
 function App() {
+  const [showDemo, setShowDemo] = useState(false);
   const [usernames, setUsernames] = useState({
     leetcode: '',
     codeforces: '',
@@ -42,10 +44,10 @@ function App() {
 
       try {
         if (plat.key === 'leetcode') {
-          const res = await fetch(`https://leetcode-stats-api.herokuapp.com/${username}`);
+          const res = await fetch(`http://localhost:5000/api/leetcode/${username}`);
           const result = await res.json();
-          if (result.status === "success") {
-            newData.leetcode = result;
+          if (result.data) {
+            newData.leetcode = result.data;
           } else {
             newData.leetcode = { error: 'User not found' };
           }
@@ -134,7 +136,17 @@ function App() {
 
   return (
     <div className="app">
-      <h1>GrindMap</h1>
+      {showDemo ? (
+        <>
+          <button onClick={() => setShowDemo(false)} className="back-btn">← Back to Main</button>
+          <DemoPage />
+        </>
+      ) : (
+        <>
+          <div style={{ textAlign: 'center', marginBottom: '20px' }}>
+            <button onClick={() => setShowDemo(true)} style={{ padding: '10px 20px', fontSize: '1em', background: '#667eea', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer' }}>View Demo</button>
+          </div>
+          <h1>GrindMap</h1>
 
       <div className="username-inputs">
         <h2>Enter Your Usernames</h2>
@@ -247,7 +259,9 @@ function App() {
             );
           })}
         </div>
-      </div>
+          </div>
+        </>
+      )}
     </div>
   );
 }

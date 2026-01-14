@@ -1,0 +1,22 @@
+# Frontend Dependencies
+
+## Node.js Packages
+- react: ^19.2.3
+- react-dom: ^19.2.3
+- react-scripts: 5.0.1
+- react-circular-progressbar: ^2.2.0
+- react-calendar-heatmap: ^1.10.0
+- date-fns: ^4.1.0
+- @testing-library/react: ^16.3.1
+- @testing-library/jest-dom: ^6.9.1
+- @testing-library/user-event: ^13.5.0
+- web-vitals: ^2.1.4
+
+## Installation
+Run: npm install
+
+## Start Development Server
+Run: npm start
+
+## Build for Production
+Run: npm run build
