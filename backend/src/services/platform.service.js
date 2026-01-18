@@ -6,6 +6,7 @@ import { normalizeCodeChef } from './normalization/codechef.normalizer.js';
 import { PLATFORMS, MESSAGES } from '../constants/app.constants.js';
 import { AppError, ERROR_CODES } from '../utils/appError.js';
 import CacheManager from '../utils/cacheManager.js';
+import DataChangeEmitter from '../utils/dataChangeEmitter.js';
 
 /**
  * Platform scraping service - handles all platform data fetching
@@ -17,9 +18,9 @@ class PlatformService {
   }
 
   /**
-   * Fetch user data from LeetCode with caching
+   * Fetch user data from LeetCode with caching and real-time updates
    */
-  async fetchLeetCodeData(username) {
+  async fetchLeetCodeData(username, userId = null) {
     const cacheKey = CacheManager.generateKey(PLATFORMS.LEETCODE, username);
     
     // Try cache first
@@ -38,6 +39,12 @@ class PlatformService {
       
       // Cache for 5 minutes
       await CacheManager.set(cacheKey, result, 300);
+      
+      // Emit real-time update
+      if (userId) {
+        DataChangeEmitter.emitPlatformUpdate(PLATFORMS.LEETCODE, username, result, userId);
+      }
+      
       return result;
     } catch (error) {
       throw new AppError(
@@ -49,9 +56,9 @@ class PlatformService {
   }
 
   /**
-   * Fetch user data from Codeforces with caching
+   * Fetch user data from Codeforces with caching and real-time updates
    */
-  async fetchCodeforcesData(username) {
+  async fetchCodeforcesData(username, userId = null) {
     const cacheKey = CacheManager.generateKey(PLATFORMS.CODEFORCES, username);
     
     // Try cache first
@@ -72,6 +79,12 @@ class PlatformService {
       
       // Cache for 10 minutes
       await CacheManager.set(cacheKey, result, 600);
+      
+      // Emit real-time update
+      if (userId) {
+        DataChangeEmitter.emitPlatformUpdate(PLATFORMS.CODEFORCES, username, result, userId);
+      }
+      
       return result;
     } catch (error) {
       throw new AppError(
@@ -83,9 +96,9 @@ class PlatformService {
   }
 
   /**
-   * Fetch user data from CodeChef with caching
+   * Fetch user data from CodeChef with caching and real-time updates
    */
-  async fetchCodeChefData(username) {
+  async fetchCodeChefData(username, userId = null) {
     const cacheKey = CacheManager.generateKey(PLATFORMS.CODECHEF, username);
     
     // Try cache first
@@ -106,6 +119,12 @@ class PlatformService {
       
       // Cache for 10 minutes
       await CacheManager.set(cacheKey, result, 600);
+      
+      // Emit real-time update
+      if (userId) {
+        DataChangeEmitter.emitPlatformUpdate(PLATFORMS.CODECHEF, username, result, userId);
+      }
+      
       return result;
     } catch (error) {
       throw new AppError(

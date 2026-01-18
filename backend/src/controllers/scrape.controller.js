@@ -9,34 +9,37 @@ import { MESSAGES } from '../constants/app.constants.js';
  */
 class ScrapeController {
   /**
-   * Get LeetCode user statistics
+   * Get LeetCode user statistics with real-time updates
    */
   getLeetCodeStats = asyncHandler(async (req, res) => {
     const { username } = req.params;
+    const userId = req.user?.id; // Get user ID if authenticated
     const platformService = ServiceRegistry.getPlatformService();
-    const data = await platformService.fetchLeetCodeData(username);
+    const data = await platformService.fetchLeetCodeData(username, userId);
     
     sendSuccess(res, data, `LeetCode data fetched for ${username}`);
   });
 
   /**
-   * Get Codeforces user statistics
+   * Get Codeforces user statistics with real-time updates
    */
   getCodeforcesStats = asyncHandler(async (req, res) => {
     const { username } = req.params;
+    const userId = req.user?.id; // Get user ID if authenticated
     const platformService = ServiceRegistry.getPlatformService();
-    const data = await platformService.fetchCodeforcesData(username);
+    const data = await platformService.fetchCodeforcesData(username, userId);
     
     sendSuccess(res, data, `Codeforces data fetched for ${username}`);
   });
 
   /**
-   * Get CodeChef user statistics
+   * Get CodeChef user statistics with real-time updates
    */
   getCodeChefStats = asyncHandler(async (req, res) => {
     const { username } = req.params;
+    const userId = req.user?.id; // Get user ID if authenticated
     const platformService = ServiceRegistry.getPlatformService();
-    const data = await platformService.fetchCodeChefData(username);
+    const data = await platformService.fetchCodeChefData(username, userId);
     
     sendSuccess(res, data, `CodeChef data fetched for ${username}`);
   });

@@ -1,5 +1,6 @@
 import express from 'express';
 import cors from 'cors';
+import { createServer } from 'http';
 import connectDB from './config/db.js';
 import { corsOptions } from './config/cors.js';
 import { errorHandler, notFound } from './middlewares/error.middleware.js';
@@ -10,6 +11,7 @@ import { generalLimiter } from './middlewares/rateLimiter.middleware.js';
 import { correlationId } from './middlewares/correlationId.middleware.js';
 import { performanceMetrics } from './middlewares/performance.middleware.js';
 import DistributedSessionManager from './utils/distributedSessionManager.js';
+import WebSocketManager from './utils/websocketManager.js';
 
 // Import routes
 import scrapeRoutes from './routes/scrape.routes.js';
@@ -20,11 +22,15 @@ import { HTTP_STATUS, ENVIRONMENTS } from './constants/app.constants.js';
 import Logger from './utils/logger.js';
 
 const app = express();
+const server = createServer(app);
 const PORT = process.env.PORT || 5001;
 const NODE_ENV = process.env.NODE_ENV || ENVIRONMENTS.DEVELOPMENT;
 
 // Connect to database
 connectDB();
+
+// Initialize WebSocket server
+WebSocketManager.initialize(server);
 
 // Request tracking and monitoring (first)
 app.use(correlationId);
@@ -61,7 +67,8 @@ app.get('/health', (req, res) => {
     timestamp: new Date().toISOString(),
     environment: NODE_ENV,
     correlationId: req.correlationId,
-    sessionActive: !!req.session
+    sessionActive: !!req.session,
+    websocketClients: WebSocketManager.getClientsCount()
   });
 });
 
@@ -78,6 +85,7 @@ app.get('/api', (req, res) => {
     endpoints: {
       scraping: '/api/scrape',
       authentication: '/api/auth',
+      websocket: '/ws',
       health: '/health',
     },
     correlationId: req.correlationId
@@ -116,12 +124,13 @@ process.on('SIGTERM', () => {
 });
 
 // Start server
-const server = app.listen(PORT, () => {
+server.listen(PORT, () => {
   Logger.info('Server started', {
     port: PORT,
     environment: NODE_ENV,
     healthCheck: `http://localhost:${PORT}/health`,
-    features: ['distributed-rate-limiting', 'distributed-sessions']
+    websocket: `ws://localhost:${PORT}/ws`,
+    features: ['distributed-rate-limiting', 'distributed-sessions', 'real-time-updates']
   });
 });
 
