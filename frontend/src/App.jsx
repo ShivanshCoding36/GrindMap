@@ -8,10 +8,11 @@ import BadgeCollection from "./components/BadgeCollection";
 import GoalDashboard from "./components/GoalDashboard";
 import UsernameInputs from "./components/UsernameInputs";
 import PlatformCard from "./components/PlatformCard";
+import { ThemeProvider } from "./contexts/ThemeContext";
 import { useGrindMapData } from "./hooks/useGrindMapData";
 import { PLATFORMS, OVERALL_GOAL } from "./utils/platforms";
 
-function App() {
+function AppContent() {
   const [showDemo, setShowDemo] = useState(false);
   const [showAnalytics, setShowAnalytics] = useState(false);
   const [showBadges, setShowBadges] = useState(false);
@@ -38,6 +39,8 @@ function App() {
 
   return (
     <div className="app">
+  <div className="container">
+
       {showDemo ? (
         <>
           <DemoPage onBack={() => setShowDemo(false)} />
@@ -126,6 +129,9 @@ function App() {
               🎯 Goals
             </button>
           </div>
+
+          <ThemeToggle />
+
           <h1>GrindMap</h1>
 
           <UsernameInputs
@@ -156,6 +162,7 @@ function App() {
                 expanded={expanded}
                 onToggle={toggleExpand}
                 percentage={getPlatformPercentage(plat.key)}
+                loading={loading}
               />
             ))}
           </div>
@@ -197,7 +204,17 @@ function App() {
           </div>
         </>
       )}
-    </div>
+      </div>
+</div>
+
+  );
+}
+
+function App() {
+  return (
+    <ThemeProvider>
+      <AppContent />
+    </ThemeProvider>
   );
 }
 

@@ -1,4 +1,5 @@
 import jwt from "jsonwebtoken";
+import { AppError, ERROR_CODES } from "../utils/appError.js";
 
 export const protect = (req, res, next) => {
   let token;
@@ -15,11 +16,9 @@ export const protect = (req, res, next) => {
 
       next();
     } catch (error) {
-      return res.status(401).json({ message: "Not authorized, token failed" });
+      return next(new AppError("Not authorized, token failed", 401, ERROR_CODES.INVALID_TOKEN));
     }
-  }
-
-  if (!token) {
-    return res.status(401).json({ message: "Not authorized, no token" });
+  } else {
+    return next(new AppError("Not authorized, no token", 401, ERROR_CODES.INVALID_TOKEN));
   }
 };
