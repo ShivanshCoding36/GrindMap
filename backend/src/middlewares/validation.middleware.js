@@ -5,14 +5,14 @@ import { AppError } from '../utils/appError.js';
 // Sanitization middleware
 const sanitizeInput = (req, res, next) => {
   // Sanitize params
-  Object.keys(req.params).forEach(key => {
+  Object.keys(req.params).forEach((key) => {
     if (typeof req.params[key] === 'string') {
       req.params[key] = xss(req.params[key].trim());
     }
   });
 
   // Sanitize query
-  Object.keys(req.query).forEach(key => {
+  Object.keys(req.query).forEach((key) => {
     if (typeof req.query[key] === 'string') {
       req.query[key] = xss(req.query[key].trim());
     }
@@ -20,7 +20,7 @@ const sanitizeInput = (req, res, next) => {
 
   // Sanitize body
   if (req.body && typeof req.body === 'object') {
-    Object.keys(req.body).forEach(key => {
+    Object.keys(req.body).forEach((key) => {
       if (typeof req.body[key] === 'string') {
         req.body[key] = xss(req.body[key].trim());
       }
@@ -34,7 +34,7 @@ const sanitizeInput = (req, res, next) => {
 const handleValidationErrors = (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    const errorMessages = errors.array().map(error => error.msg);
+    const errorMessages = errors.array().map((error) => error.msg);
     throw new AppError(errorMessages.join(', '), 400);
   }
   next();
@@ -46,9 +46,25 @@ const validateUsername = [
     .isLength({ min: 1, max: 50 })
     .withMessage('Username must be 1-50 characters')
     .matches(/^[a-zA-Z0-9_-]+$/)
-    .withMessage('Username can only contain letters, numbers, hyphens, and underscores')
+    .withMessage(
+      'Username can only contain letters, numbers, hyphens, and underscores'
+    )
     .escape(),
-  handleValidationErrors
+  handleValidationErrors,
 ];
 
-export { sanitizeInput, validateUsername, handleValidationErrors };
+// Basic validate function (placeholder/adapter)
+const validate = (schema) => {
+  return (req, res, next) => {
+    // TODO: Implement actual schema validation based on the schema object
+    next();
+  };
+};
+
+export {
+  sanitizeInput as sanitize,
+  validate,
+  sanitizeInput,
+  validateUsername,
+  handleValidationErrors,
+};
