@@ -1,7 +1,8 @@
 import jwt from "jsonwebtoken";
 import { AppError, ERROR_CODES } from "../utils/appError.js";
+import { asyncMiddleware } from "../utils/asyncWrapper.js";
 
-export const protect = (req, res, next) => {
+export const protect = asyncMiddleware(async (req, res, next) => {
   let token;
 
   if (
@@ -16,9 +17,9 @@ export const protect = (req, res, next) => {
 
       next();
     } catch (error) {
-      return next(new AppError("Not authorized, token failed", 401, ERROR_CODES.INVALID_TOKEN));
+      throw new AppError("Not authorized, token failed", 401, ERROR_CODES.INVALID_TOKEN);
     }
   } else {
-    return next(new AppError("Not authorized, no token", 401, ERROR_CODES.INVALID_TOKEN));
+    throw new AppError("Not authorized, no token", 401, ERROR_CODES.INVALID_TOKEN);
   }
-};
+});
