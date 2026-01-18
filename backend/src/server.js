@@ -1,5 +1,6 @@
 import express from 'express';
 import cors from 'cors';
+import connectDB from './config/db.js';
 import { corsOptions } from './config/cors.js';
 import { errorHandler, notFound } from './middlewares/error.middleware.js';
 import { securityHeaders } from './middlewares/security.middleware.js';
@@ -17,6 +18,9 @@ import { HTTP_STATUS, ENVIRONMENTS } from './constants/app.constants.js';
 const app = express();
 const PORT = process.env.PORT || 5001;
 const NODE_ENV = process.env.NODE_ENV || ENVIRONMENTS.DEVELOPMENT;
+
+// Connect to database
+connectDB();
 
 // Security middleware (applied first)
 app.use(securityHeaders);
