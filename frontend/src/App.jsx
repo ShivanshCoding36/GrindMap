@@ -1,17 +1,22 @@
-import React, { useState } from "react";
+import React, { useState, lazy, Suspense } from "react";
 import "./App.css";
 import CircularProgress from "./components/CircularProgress";
 
 import DemoPage from "./components/DemoPage";
-import AnalyticsDashboard from "./components/AnalyticsDashboard";
 import BadgeCollection from "./components/BadgeCollection";
 import GoalDashboard from "./components/GoalDashboard";
 import UsernameInputs from "./components/UsernameInputs";
 import PlatformCard from "./components/PlatformCard";
 import ThemeToggle from "./components/ThemeToggle";
+
 import { ThemeProvider } from "./contexts/ThemeContext";
 import { useGrindMapData } from "./hooks/useGrindMapData";
 import { PLATFORMS, OVERALL_GOAL } from "./utils/platforms";
+
+/* Lazy-loaded analytics dashboard */
+const AnalyticsDashboard = lazy(() =>
+  import("./components/AnalyticsDashboard")
+);
 
 function AppContent() {
   const [showDemo, setShowDemo] = useState(false);
@@ -35,25 +40,23 @@ function AppContent() {
     setExpanded(expanded === key ? null : key);
   };
 
-  // Today's Activity Logic
   const today = new Date();
 
   return (
     <div className="app">
       <div className="container">
         {showDemo ? (
-          <>
-            <DemoPage onBack={() => setShowDemo(false)} />
-          </>
+          <DemoPage onBack={() => setShowDemo(false)} />
         ) : showAnalytics ? (
           <>
-            <button
-              onClick={() => setShowAnalytics(false)}
-              className="back-btn"
-            >
+            <button onClick={() => setShowAnalytics(false)} className="back-btn">
               ← Back to Main
             </button>
-            <AnalyticsDashboard platformData={platformData} />
+
+            {/* ✅ Suspense wrapper for lazy-loaded analytics */}
+            <Suspense fallback={<div>Loading analytics...</div>}>
+              <AnalyticsDashboard platformData={platformData} />
+            </Suspense>
           </>
         ) : showBadges ? (
           <>
@@ -185,20 +188,27 @@ function AppContent() {
                 {PLATFORMS.map((plat) => {
                   const submittedToday = hasSubmittedToday(plat.key);
                   const hasData =
-                    platformData[plat.key] && !platformData[plat.key].error;
+                    platformData[plat.key] &&
+                    !platformData[plat.key].error;
 
                   return (
                     <div
                       key={plat.key}
-                      className={`activity-item ${submittedToday ? "done" : hasData ? "active-no-sub" : "missed"}`}
+                      className={`activity-item ${
+                        submittedToday
+                          ? "done"
+                          : hasData
+                          ? "active-no-sub"
+                          : "missed"
+                      }`}
                     >
                       <span>{plat.name}</span>
                       <span>
                         {submittedToday
                           ? "✅ Coded Today"
                           : hasData
-                            ? "✅ Active (No submission today)"
-                            : "❌ No Data"}
+                          ? "✅ Active (No submission today)"
+                          : "❌ No Data"}
                       </span>
                     </div>
                   );
