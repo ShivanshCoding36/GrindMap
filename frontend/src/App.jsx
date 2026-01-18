@@ -7,6 +7,9 @@ import AnalyticsDashboard from "./components/AnalyticsDashboard";
 import BadgeCollection from "./components/BadgeCollection";
 import UsernameInputs from "./components/UsernameInputs";
 import PlatformCard from "./components/PlatformCard";
+import Leaderboard from "./components/Leaderboard";
+import Friends from "./components/Friends";
+import Profile from "./components/Profile";
 import { useGrindMapData } from "./hooks/useGrindMapData";
 import { PLATFORMS, OVERALL_GOAL } from "./utils/platforms";
 
@@ -14,6 +17,9 @@ function App() {
   const [showDemo, setShowDemo] = useState(false);
   const [showAnalytics, setShowAnalytics] = useState(false);
   const [showBadges, setShowBadges] = useState(false);
+  const [showLeaderboard, setShowLeaderboard] = useState(false);
+  const [showFriends, setShowFriends] = useState(false);
+  const [showProfile, setShowProfile] = useState(false);
   const [expanded, setExpanded] = useState(null);
 
   const {
@@ -36,6 +42,8 @@ function App() {
 
   return (
     <div className="app">
+  <div className="container">
+
       {showDemo ? (
         <>
           <DemoPage onBack={() => setShowDemo(false)} />
@@ -54,54 +62,20 @@ function App() {
           </button>
           <BadgeCollection />
         </>
+      ) : showLeaderboard ? (
+        <>
+          <Leaderboard onBack={() => setShowLeaderboard(false)} />
+        </>
+      ) : showFriends ? (
+        <>
+          <Friends onBack={() => setShowFriends(false)} />
+        </>
+      ) : showProfile ? (
+        <>
+          <Profile onBack={() => setShowProfile(false)} />
+        </>
       ) : (
         <>
-          <div style={{ textAlign: "center", marginBottom: "20px" }}>
-            <button
-              onClick={() => setShowDemo(true)}
-              style={{
-                padding: "10px 20px",
-                fontSize: "1em",
-                background: "#667eea",
-                color: "white",
-                border: "none",
-                borderRadius: "8px",
-                cursor: "pointer",
-                marginRight: "10px",
-              }}
-            >
-              View Demo
-            </button>
-            <button
-              onClick={() => setShowAnalytics(true)}
-              style={{
-                padding: "10px 20px",
-                fontSize: "1em",
-                background: "#4caf50",
-                color: "white",
-                border: "none",
-                borderRadius: "8px",
-                cursor: "pointer",
-                marginRight: "10px",
-              }}
-            >
-              View Analytics
-            </button>
-            <button
-              onClick={() => setShowBadges(true)}
-              style={{
-                padding: "10px 20px",
-                fontSize: "1em",
-                background: "#9b59b6",
-                color: "white",
-                border: "none",
-                borderRadius: "8px",
-                cursor: "pointer",
-              }}
-            >
-              🏆 Achievements
-            </button>
-          </div>
           <h1>GrindMap</h1>
 
           <UsernameInputs
@@ -132,6 +106,7 @@ function App() {
                 expanded={expanded}
                 onToggle={toggleExpand}
                 percentage={getPlatformPercentage(plat.key)}
+                loading={loading}
               />
             ))}
           </div>
@@ -173,7 +148,9 @@ function App() {
           </div>
         </>
       )}
-    </div>
+      </div>
+</div>
+
   );
 }
 
