@@ -198,6 +198,86 @@ class AuthController {
 
     sendSuccess(res, user, "Profile retrieved successfully");
   });
+
+  /**
+   * Forgot Password - Send reset email
+   * @route POST /api/auth/forgot-password
+   */
+  forgotPassword = asyncHandler(async (req, res) => {
+    const { email } = req.body;
+
+    const user = await User.findOne({ email });
+
+    // Always return success to prevent email enumeration
+    if (!user) {
+      return sendSuccess(res, null, "If the email exists, a reset link has been sent.");
+    }
+
+    // Check if user logged in via GitHub (no password)
+    if (user.githubId && !user.password) {
+      return sendSuccess(res, null, "If the email exists, a reset link has been sent.");
+    }
+
+    // Generate crypto token
+    const crypto = await import('crypto');
+    const resetToken = crypto.randomBytes(32).toString('hex');
+
+    // Hash the token before saving to DB
+    const hashedToken = crypto.createHash('sha256').update(resetToken).digest('hex');
+
+    // Set token and expiry (10 minutes)
+    user.passwordResetToken = hashedToken;
+    user.passwordResetExpires = Date.now() + 10 * 60 * 1000; // 10 minutes
+    await user.save({ validateBeforeSave: false });
+
+    // Send email
+    try {
+      const EmailService = (await import('../services/email.service.js')).default;
+      await EmailService.sendPasswordResetEmail(user.email, resetToken, user.name);
+      sendSuccess(res, null, "Password reset link sent to your email.");
+    } catch (error) {
+      // Rollback token if email fails
+      user.passwordResetToken = undefined;
+      user.passwordResetExpires = undefined;
+      await user.save({ validateBeforeSave: false });
+      throw new AppError("Failed to send email. Please try again.", HTTP_STATUS.INTERNAL_SERVER_ERROR);
+    }
+  });
+
+  /**
+   * Reset Password - Validate token and update password
+   * @route PUT /api/auth/reset-password/:token
+   */
+  resetPassword = asyncHandler(async (req, res) => {
+    const { token } = req.params;
+    const { password } = req.body;
+
+    if (!password || password.length < 8) {
+      throw new AppError("Password must be at least 8 characters", HTTP_STATUS.BAD_REQUEST);
+    }
+
+    // Hash the incoming token
+    const crypto = await import('crypto');
+    const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
+
+    // Find user with valid token
+    const user = await User.findOne({
+      passwordResetToken: hashedToken,
+      passwordResetExpires: { $gt: Date.now() }
+    }).select('+password +passwordResetToken +passwordResetExpires');
+
+    if (!user) {
+      throw new AppError("Invalid or expired reset token", HTTP_STATUS.BAD_REQUEST, ERROR_CODES.INVALID_TOKEN);
+    }
+
+    // Update password and clear reset fields
+    user.password = password;
+    user.passwordResetToken = undefined;
+    user.passwordResetExpires = undefined;
+    await user.save();
+
+    sendSuccess(res, null, "Password has been reset successfully. You can now log in.");
+  });
 }
 
 export default new AuthController();

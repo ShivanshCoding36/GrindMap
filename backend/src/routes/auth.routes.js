@@ -71,4 +71,26 @@ router.get(
   AuthController.githubCallback
 );
 
+/**
+ * @route   POST /api/auth/forgot-password
+ * @desc    Request password reset email
+ * @access  Public
+ */
+router.post(
+  '/forgot-password',
+  [validateEmail],
+  AuthController.forgotPassword
+);
+
+/**
+ * @route   PUT /api/auth/reset-password/:token
+ * @desc    Reset password with token
+ * @access  Public
+ */
+router.put(
+  '/reset-password/:token',
+  [validatePassword],
+  AuthController.resetPassword
+);
+
 export default router;
