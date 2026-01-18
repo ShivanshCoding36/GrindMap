@@ -7,6 +7,9 @@ import AnalyticsDashboard from "./components/AnalyticsDashboard";
 import BadgeCollection from "./components/BadgeCollection";
 import UsernameInputs from "./components/UsernameInputs";
 import PlatformCard from "./components/PlatformCard";
+import Leaderboard from "./components/Leaderboard";
+import Friends from "./components/Friends";
+import Profile from "./components/Profile";
 import { useGrindMapData } from "./hooks/useGrindMapData";
 import { PLATFORMS, OVERALL_GOAL } from "./utils/platforms";
 
@@ -14,6 +17,9 @@ function App() {
   const [showDemo, setShowDemo] = useState(false);
   const [showAnalytics, setShowAnalytics] = useState(false);
   const [showBadges, setShowBadges] = useState(false);
+  const [showLeaderboard, setShowLeaderboard] = useState(false);
+  const [showFriends, setShowFriends] = useState(false);
+  const [showProfile, setShowProfile] = useState(false);
   const [expanded, setExpanded] = useState(null);
 
   const {
@@ -53,6 +59,18 @@ function App() {
             ← Back to Main
           </button>
           <BadgeCollection />
+        </>
+      ) : showLeaderboard ? (
+        <>
+          <Leaderboard onBack={() => setShowLeaderboard(false)} />
+        </>
+      ) : showFriends ? (
+        <>
+          <Friends onBack={() => setShowFriends(false)} />
+        </>
+      ) : showProfile ? (
+        <>
+          <Profile onBack={() => setShowProfile(false)} />
         </>
       ) : (
         <>
@@ -97,9 +115,54 @@ function App() {
                 border: "none",
                 borderRadius: "8px",
                 cursor: "pointer",
+                marginRight: "10px",
               }}
             >
               🏆 Achievements
+            </button>
+            <button
+              onClick={() => setShowLeaderboard(true)}
+              style={{
+                padding: "10px 20px",
+                fontSize: "1em",
+                background: "#e74c3c",
+                color: "white",
+                border: "none",
+                borderRadius: "8px",
+                cursor: "pointer",
+                marginRight: "10px",
+              }}
+            >
+              🏅 Leaderboard
+            </button>
+            <button
+              onClick={() => setShowFriends(true)}
+              style={{
+                padding: "10px 20px",
+                fontSize: "1em",
+                background: "#3498db",
+                color: "white",
+                border: "none",
+                borderRadius: "8px",
+                cursor: "pointer",
+                marginRight: "10px",
+              }}
+            >
+              👥 Friends
+            </button>
+            <button
+              onClick={() => setShowProfile(true)}
+              style={{
+                padding: "10px 20px",
+                fontSize: "1em",
+                background: "#f39c12",
+                color: "white",
+                border: "none",
+                borderRadius: "8px",
+                cursor: "pointer",
+              }}
+            >
+              ⚙️ Profile
             </button>
           </div>
           <h1>GrindMap</h1>
