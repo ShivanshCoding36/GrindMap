@@ -1,6 +1,7 @@
 import React from "react";
 import CircularProgress from "./CircularProgress";
 import ActivityHeatmap from "./ActivityHeatmap";
+import PlatformCardSkeleton from "./PlatformCardSkeleton";
 
 const PlatformCard = ({
   platform,
@@ -13,18 +14,9 @@ const PlatformCard = ({
   const isExpanded = expanded === platform.key;
 
   if (loading) {
-    return (
-      <div className="platform-card">
-        <div className="card-header">
-          <h3 style={{ color: platform.color }}>{platform.name}</h3>
-          <div className="platform-progress">
-            <CircularProgress percentage={0} color="#ccc" size="medium" />
-          </div>
-        </div>
-        <p className="placeholder">Loading data...</p>
-      </div>
-    );
-  }
+  return <PlatformCardSkeleton platform={platform} />;
+}
+
 
   if (!data) {
     return (
