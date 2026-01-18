@@ -12,6 +12,8 @@ import ThemeToggle from "./components/ThemeToggle";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import { useGrindMapData } from "./hooks/useGrindMapData";
 import { PLATFORMS, OVERALL_GOAL } from "./utils/platforms";
+import ErrorBoundary from "./components/ErrorBoundary";
+
 
 /* Lazy-loaded analytics dashboard */
 const AnalyticsDashboard = lazy(() =>
@@ -222,9 +224,12 @@ const btnStyle = {
 function App() {
   return (
     <ThemeProvider>
-      <AppContent />
+      <ErrorBoundary>
+        <AppContent />
+      </ErrorBoundary>
     </ThemeProvider>
   );
 }
+
 
 export default App;
