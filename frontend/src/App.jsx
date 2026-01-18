@@ -5,21 +5,19 @@ import CircularProgress from "./components/CircularProgress";
 import DemoPage from "./components/DemoPage";
 import AnalyticsDashboard from "./components/AnalyticsDashboard";
 import BadgeCollection from "./components/BadgeCollection";
+import GoalDashboard from "./components/GoalDashboard";
+import ThemeToggle from "./components/ThemeToggle";
 import UsernameInputs from "./components/UsernameInputs";
 import PlatformCard from "./components/PlatformCard";
-import Leaderboard from "./components/Leaderboard";
-import Friends from "./components/Friends";
-import Profile from "./components/Profile";
+import { ThemeProvider } from "./contexts/ThemeContext";
 import { useGrindMapData } from "./hooks/useGrindMapData";
 import { PLATFORMS, OVERALL_GOAL } from "./utils/platforms";
 
-function App() {
+function AppContent() {
   const [showDemo, setShowDemo] = useState(false);
   const [showAnalytics, setShowAnalytics] = useState(false);
   const [showBadges, setShowBadges] = useState(false);
-  const [showLeaderboard, setShowLeaderboard] = useState(false);
-  const [showFriends, setShowFriends] = useState(false);
-  const [showProfile, setShowProfile] = useState(false);
+  const [showGoals, setShowGoals] = useState(false);
   const [expanded, setExpanded] = useState(null);
 
   const {
@@ -62,20 +60,79 @@ function App() {
           </button>
           <BadgeCollection />
         </>
-      ) : showLeaderboard ? (
+      ) : showGoals ? (
         <>
-          <Leaderboard onBack={() => setShowLeaderboard(false)} />
-        </>
-      ) : showFriends ? (
-        <>
-          <Friends onBack={() => setShowFriends(false)} />
-        </>
-      ) : showProfile ? (
-        <>
-          <Profile onBack={() => setShowProfile(false)} />
+          <button onClick={() => setShowGoals(false)} className="back-btn">
+            ← Back to Main
+          </button>
+          <GoalDashboard />
         </>
       ) : (
         <>
+          <div style={{ textAlign: "center", marginBottom: "20px" }}>
+            <button
+              onClick={() => setShowDemo(true)}
+              style={{
+                padding: "10px 20px",
+                fontSize: "1em",
+                background: "#667eea",
+                color: "white",
+                border: "none",
+                borderRadius: "8px",
+                cursor: "pointer",
+                marginRight: "10px",
+              }}
+            >
+              View Demo
+            </button>
+            <button
+              onClick={() => setShowAnalytics(true)}
+              style={{
+                padding: "10px 20px",
+                fontSize: "1em",
+                background: "#4caf50",
+                color: "white",
+                border: "none",
+                borderRadius: "8px",
+                cursor: "pointer",
+                marginRight: "10px",
+              }}
+            >
+              View Analytics
+            </button>
+            <button
+              onClick={() => setShowBadges(true)}
+              style={{
+                padding: "10px 20px",
+                fontSize: "1em",
+                background: "#9b59b6",
+                color: "white",
+                border: "none",
+                borderRadius: "8px",
+                cursor: "pointer",
+                marginRight: "10px",
+              }}
+            >
+              🏆 Achievements
+            </button>
+            <button
+              onClick={() => setShowGoals(true)}
+              style={{
+                padding: "10px 20px",
+                fontSize: "1em",
+                background: "#e74c3c",
+                color: "white",
+                border: "none",
+                borderRadius: "8px",
+                cursor: "pointer",
+              }}
+            >
+              🎯 Goals
+            </button>
+          </div>
+
+          <ThemeToggle />
+
           <h1>GrindMap</h1>
 
           <UsernameInputs
@@ -151,6 +208,14 @@ function App() {
       </div>
 </div>
 
+  );
+}
+
+function App() {
+  return (
+    <ThemeProvider>
+      <AppContent />
+    </ThemeProvider>
   );
 }
 

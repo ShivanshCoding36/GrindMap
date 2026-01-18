@@ -6,10 +6,11 @@
 }
 
 body {
-  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: #1e293b;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: linear-gradient(135deg, var(--theme-primary) 0%, var(--theme-secondary) 100%);
+  color: var(--theme-text);
   min-height: 100vh;
+  transition: background 0.3s ease, color 0.3s ease;
 }
 
 
@@ -31,54 +32,10 @@ body {
 
 .app h1 {
   text-align: center;
-  font-size: 3.2em;
-  color: white;
-  text-shadow: 2px 2px 6px rgba(0, 0, 0, 0.25);
-  margin-bottom: 28px;
-}
-
-/* =========================
-   DEMO MODE BANNER
-========================= */
-.demo-banner {
-  position: relative;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 60%, #6b5bd2 100%);
-  color: white;
-  padding: 26px 32px;
-  border-radius: 18px;
-  text-align: center;
-  margin-bottom: 40px;
-  box-shadow: 0 12px 30px rgba(102, 126, 234, 0.35),
-    inset 0 1px 0 rgba(255, 255, 255, 0.15);
-  overflow: hidden;
-}
-
-.demo-banner::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(
-    circle at top,
-    rgba(255, 255, 255, 0.18),
-    transparent 60%
-  );
-  pointer-events: none;
-}
-
-.demo-banner h2 {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-  margin: 0 0 8px 0;
-  font-size: 2.1em;
-  font-weight: 700;
-}
-
-.demo-banner p {
-  margin: 0;
-  font-size: 1.1em;
-  opacity: 0.92;
+  font-size: 3.5em;
+  color: var(--theme-text);
+  text-shadow: 2px 2px 4px var(--theme-shadow);
+  margin-bottom: 30px;
 }
 
 /* =========================
