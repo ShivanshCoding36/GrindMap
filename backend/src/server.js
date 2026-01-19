@@ -13,6 +13,7 @@ import { correlationId } from './middlewares/correlationId.middleware.js';
 import { performanceMetrics } from './middlewares/performance.middleware.js';
 import { distributedRateLimit, botDetection, geoSecurityCheck, securityAudit, abuseDetection } from './middlewares/advancedSecurity.middleware.js';
 import { autoRefresh } from './middlewares/jwtManager.middleware.js';
+import { globalErrorBoundary } from './middlewares/errorBoundary.middleware.js';
 import DistributedSessionManager from './utils/distributedSessionManager.js';
 import WebSocketManager from './utils/websocketManager.js';
 import BatchProcessingService from './services/batchProcessing.service.js';
@@ -33,6 +34,12 @@ const app = express();
 const server = createServer(app);
 const PORT = process.env.PORT || 8080;
 const NODE_ENV = process.env.NODE_ENV || ENVIRONMENTS.DEVELOPMENT;
+
+// Initialize global error boundary
+globalErrorBoundary();
+
+// Connect to database
+connectDB();
 
 // Initialize WebSocket server
 WebSocketManager.initialize(server);
