@@ -54,43 +54,26 @@ router.post('/logout', protect, AuthController.logoutUser);
 router.get('/profile', protect, AuthController.getUserProfile);
 
 /**
- * @route   GET /api/auth/github
- * @desc    GitHub OAuth
- * @access  Public
- */
-router.get('/github', passport.authenticate('github', { scope: ['user:email'], session: false }));
-
-/**
- * @route   GET /api/auth/github/callback
- * @desc    GitHub OAuth Callback
- * @access  Public
- */
-router.get(
-  '/github/callback',
-  passport.authenticate('github', { session: false, failureRedirect: '/login?error=auth_failed' }),
-  AuthController.githubCallback
-);
-
-/**
- * @route   POST /api/auth/forgot-password
- * @desc    Request password reset email
- * @access  Public
- */
-router.post(
-  '/forgot-password',
-  [validateEmail],
-  AuthController.forgotPassword
-);
-
-/**
- * @route   PUT /api/auth/reset-password/:token
- * @desc    Reset password with token
- * @access  Public
+ * @route   PUT /api/auth/profile
+ * @desc    Update user profile
+ * @access  Private
  */
 router.put(
-  '/reset-password/:token',
-  [validatePassword],
-  AuthController.resetPassword
+  '/profile',
+  protect,
+  [
+    body('name')
+      .optional()
+      .trim()
+      .isLength({ min: 2, max: 50 })
+      .withMessage('Name must be 2-50 characters long'),
+    body('bio')
+      .optional()
+      .trim()
+      .isLength({ max: 500 })
+      .withMessage('Bio cannot exceed 500 characters')
+  ],
+  AuthController.updateProfile
 );
 
 export default router;
