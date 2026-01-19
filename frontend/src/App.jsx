@@ -28,6 +28,14 @@ function AppContent() {
   const [showContributors, setShowContributors] = useState(false);
   const [expanded, setExpanded] = useState(null);
   const [user, setUser] = useState(null);
+  
+  // Dynamic overall goal with localStorage persistence
+  const [overallGoal, setOverallGoal] = useState(() => {
+    const savedGoal = localStorage.getItem('overallGoal');
+    return savedGoal ? parseInt(savedGoal, 10) : OVERALL_GOAL;
+  });
+  const [isEditingGoal, setIsEditingGoal] = useState(false);
+  const [tempGoal, setTempGoal] = useState(overallGoal);
 
   const {
     usernames,
@@ -69,6 +77,31 @@ function AppContent() {
 
   const toggleExpand = (key) => {
     setExpanded(expanded === key ? null : key);
+  };
+
+  const handleGoalEdit = () => {
+    setTempGoal(overallGoal);
+    setIsEditingGoal(true);
+  };
+
+  const handleGoalSave = () => {
+    if (tempGoal > 0) {
+      setOverallGoal(tempGoal);
+      localStorage.setItem('overallGoal', tempGoal.toString());
+      setIsEditingGoal(false);
+    }
+  };
+
+  const handleGoalCancel = () => {
+    setTempGoal(overallGoal);
+    setIsEditingGoal(false);
+  };
+
+  const handleGoalChange = (e) => {
+    const value = parseInt(e.target.value, 10);
+    if (!isNaN(value) && value >= 0) {
+      setTempGoal(value);
+    }
   };
 
   const today = new Date();
@@ -243,15 +276,99 @@ function AppContent() {
             />
 
             <div className="overall">
-              <h2>Overall Progress</h2>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', marginBottom: '10px' }}>
+                <h2 style={{ margin: 0 }}>Overall Progress</h2>
+                {!isEditingGoal && (
+                  <button
+                    onClick={handleGoalEdit}
+                    style={{
+                      padding: '5px 12px',
+                      fontSize: '0.85em',
+                      border: 'none',
+                      background: 'rgba(76, 175, 80, 0.2)',
+                      color: '#4caf50',
+                      borderRadius: '6px',
+                      cursor: 'pointer',
+                      transition: 'all 0.3s ease',
+                    }}
+                    onMouseOver={(e) => e.currentTarget.style.background = 'rgba(76, 175, 80, 0.3)'}
+                    onMouseOut={(e) => e.currentTarget.style.background = 'rgba(76, 175, 80, 0.2)'}
+                  >
+                    ✏️ Edit Goal
+                  </button>
+                )}
+              </div>
+              
               <CircularProgress
                 solved={totalSolved}
-                goal={OVERALL_GOAL}
+                goal={overallGoal}
                 color="#4caf50"
               />
-              <p>
-                {totalSolved} / {OVERALL_GOAL} problems solved
-              </p>
+              
+              {isEditingGoal ? (
+                <div style={{ marginTop: '15px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', marginBottom: '10px' }}>
+                    <input
+                      type="number"
+                      min="1"
+                      value={tempGoal}
+                      onChange={handleGoalChange}
+                      style={{
+                        padding: '8px 12px',
+                        fontSize: '1em',
+                        borderRadius: '6px',
+                        border: '2px solid #4caf50',
+                        background: 'rgba(255, 255, 255, 0.1)',
+                        color: 'var(--theme-text)',
+                        width: '120px',
+                        textAlign: 'center',
+                      }}
+                      autoFocus
+                    />
+                    <span>problems</span>
+                  </div>
+                  <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
+                    <button
+                      onClick={handleGoalSave}
+                      style={{
+                        padding: '8px 16px',
+                        fontSize: '0.9em',
+                        border: 'none',
+                        background: '#4caf50',
+                        color: 'white',
+                        borderRadius: '6px',
+                        cursor: 'pointer',
+                        transition: 'all 0.3s ease',
+                      }}
+                      onMouseOver={(e) => e.currentTarget.style.background = '#45a049'}
+                      onMouseOut={(e) => e.currentTarget.style.background = '#4caf50'}
+                    >
+                      ✓ Save
+                    </button>
+                    <button
+                      onClick={handleGoalCancel}
+                      style={{
+                        padding: '8px 16px',
+                        fontSize: '0.9em',
+                        border: 'none',
+                        background: 'rgba(255, 255, 255, 0.1)',
+                        color: 'var(--theme-text)',
+                        borderRadius: '6px',
+                        cursor: 'pointer',
+                        transition: 'all 0.3s ease',
+                      }}
+                      onMouseOver={(e) => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.2)'}
+                      onMouseOut={(e) => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)'}
+                    >
+                      ✕ Cancel
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <p>
+                  {totalSolved} / {overallGoal} problems solved
+                </p>
+              )}
             </div>
 
             <div className="platforms-grid">
