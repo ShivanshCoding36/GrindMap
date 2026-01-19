@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
 import { createServer } from 'http';
@@ -32,9 +33,6 @@ const app = express();
 const server = createServer(app);
 const PORT = process.env.PORT || 8080;
 const NODE_ENV = process.env.NODE_ENV || ENVIRONMENTS.DEVELOPMENT;
-
-// Connect to database
-connectDB();
 
 // Initialize WebSocket server
 WebSocketManager.initialize(server);
@@ -75,10 +73,14 @@ app.use(express.urlencoded({ extended: true }));
 // Input sanitization
 app.use(sanitizeInput);
 
+// Passport Middleware
+app.use(passport.initialize());
+configurePassport();
+
 // Health check endpoint
 app.get('/health', (req, res) => {
   Logger.info('Health check accessed', { correlationId: req.correlationId });
-  
+
   res.status(HTTP_STATUS.OK).json({
     success: true,
     message: 'Server is healthy',
@@ -149,14 +151,24 @@ process.on('SIGTERM', () => {
 });
 
 // Start server
-server.listen(PORT, () => {
-  Logger.info('Server started', {
-    port: PORT,
-    environment: NODE_ENV,
-    healthCheck: `http://localhost:${PORT}/health`,
-    websocket: `ws://localhost:${PORT}/ws`,
-    features: ['distributed-rate-limiting', 'distributed-sessions', 'real-time-updates']
-  });
-});
+const startServer = async () => {
+  try {
+    await connectDB();
+    server.listen(PORT, () => {
+      Logger.info('Server started', {
+        port: PORT,
+        environment: NODE_ENV,
+        healthCheck: `http://localhost:${PORT}/health`,
+        websocket: `ws://localhost:${PORT}/ws`,
+        features: ['distributed-rate-limiting', 'distributed-sessions', 'real-time-updates']
+      });
+    });
+  } catch (error) {
+    Logger.error('Failed to connect to database', error);
+    process.exit(1);
+  }
+};
+
+startServer();
 
 export default app;
