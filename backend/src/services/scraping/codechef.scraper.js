@@ -23,6 +23,7 @@ export async function fetchCodeChefStats(username) {
   const startTime = Date.now();
   let validatedUsername;
   
+  // Check cache first
   try {
     // Validate and sanitize username
     validatedUsername = InputValidator.validateUsername(username, 'CODECHEF');
