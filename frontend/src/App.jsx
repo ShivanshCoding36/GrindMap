@@ -1,31 +1,23 @@
 import React, { useState, lazy, Suspense } from "react";
 import "./App.css";
+import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import CircularProgress from "./components/CircularProgress";
-
 import DemoPage from "./components/DemoPage";
 import BadgeCollection from "./components/BadgeCollection";
 import GoalDashboard from "./components/GoalDashboard";
 import UsernameInputs from "./components/UsernameInputs";
 import PlatformCard from "./components/PlatformCard";
-import ThemeToggle from "./components/ThemeToggle";
-import ContributorsHallOfFame from "./components/ContributorsHallOfFame";
-
-import { ThemeProvider } from "./contexts/ThemeContext";
+import UserProfile from "./components/UserProfile";
+import AuthModal from "./components/AuthModal";
 import { useGrindMapData } from "./hooks/useGrindMapData";
 import { PLATFORMS, OVERALL_GOAL } from "./utils/platforms";
 import ErrorBoundary from "./components/ErrorBoundary";
-
-/* Lazy-loaded analytics dashboard */
-const AnalyticsDashboard = lazy(
-  () => import("./components/AnalyticsDashboard"),
-);
 
 function AppContent() {
   const [showDemo, setShowDemo] = useState(false);
   const [showAnalytics, setShowAnalytics] = useState(false);
   const [showBadges, setShowBadges] = useState(false);
-  const [showGoals, setShowGoals] = useState(false);
-  const [showContributors, setShowContributors] = useState(false);
+  const [showAuthModal, setShowAuthModal] = useState(false);
   const [expanded, setExpanded] = useState(null);
   const [user, setUser] = useState(null);
   
@@ -36,6 +28,8 @@ function AppContent() {
   });
   const [isEditingGoal, setIsEditingGoal] = useState(false);
   const [tempGoal, setTempGoal] = useState(overallGoal);
+
+  const { isAuthenticated, loading: authLoading } = useAuth();
 
   const {
     usernames,
@@ -79,42 +73,56 @@ function AppContent() {
     setExpanded(expanded === key ? null : key);
   };
 
-  const handleGoalEdit = () => {
-    setTempGoal(overallGoal);
-    setIsEditingGoal(true);
-  };
-
-  const handleGoalSave = () => {
-    if (tempGoal > 0) {
-      setOverallGoal(tempGoal);
-      localStorage.setItem('overallGoal', tempGoal.toString());
-      setIsEditingGoal(false);
-    }
-  };
-
-  const handleGoalCancel = () => {
-    setTempGoal(overallGoal);
-    setIsEditingGoal(false);
-  };
-
-  const handleGoalChange = (e) => {
-    const value = parseInt(e.target.value, 10);
-    if (!isNaN(value) && value >= 0) {
-      setTempGoal(value);
-    }
-  };
-
   const today = new Date();
+
+  if (authLoading) {
+    return (
+      <div className="app">
+        <div style={{ textAlign: 'center', padding: '50px' }}>
+          <h2>Loading...</h2>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="app">
-      <div className="container">
-        {showDemo ? (
-          <>
-            <DemoPage onBack={() => setShowDemo(false)} />
-          </>
-        ) : showAnalytics ? (
-          <>
+      {showDemo ? (
+        <>
+          <DemoPage onBack={() => setShowDemo(false)} />
+        </>
+      ) : showAnalytics ? (
+        <>
+          <button onClick={() => setShowAnalytics(false)} className="back-btn">
+            ← Back to Main
+          </button>
+          <AnalyticsDashboard platformData={platformData} />
+        </>
+      ) : showBadges ? (
+        <>
+          <button onClick={() => setShowBadges(false)} className="back-btn">
+            ← Back to Main
+          </button>
+          <BadgeCollection />
+        </>
+      ) : (
+        <>
+          {/* Header with Auth */}
+          <div className="app-header">
+            <h1>GrindMap</h1>
+            {isAuthenticated ? (
+              <UserProfile />
+            ) : (
+              <button
+                onClick={() => setShowAuthModal(true)}
+                className="auth-trigger-btn"
+              >
+                Sign In
+              </button>
+            )}
+          </div>
+
+          <div style={{ textAlign: "center", marginBottom: "20px" }}>
             <button
               onClick={() => setShowAnalytics(false)}
               className="back-btn"
@@ -159,120 +167,23 @@ function AppContent() {
                 padding: "0.5rem 1rem",
               }}
             >
-              {user ? (
-                <div style={{ display: "flex", alignItems: "center" }}>
-                  <span
-                    style={{
-                      marginRight: "10px",
-                      fontWeight: "bold",
-                      color: "#fff",
-                    }}
-                  >
-                    👋 {user.name}
-                  </span>
-                  <button
-                    onClick={handleLogout}
-                    onMouseOver={(e) =>
-                      (e.currentTarget.style.background =
-                        "rgba(231, 76, 60, 0.3)")
-                    }
-                    onMouseOut={(e) =>
-                      (e.currentTarget.style.background = "transparent")
-                    }
-                    style={btnStyle}
-                  >
-                    Logout
-                  </button>
-                </div>
-              ) : (
-                <button
-                  onClick={handleLogin}
-                  onMouseOver={(e) =>
-                    (e.currentTarget.style.background = "rgba(255,255,255,0.2)")
-                  }
-                  onMouseOut={(e) =>
-                    (e.currentTarget.style.background = "transparent")
-                  }
-                  style={btnStyle}
-                >
-                  🐙 GitHub Login
-                </button>
-              )}
+              🏆 Achievements
+            </button>
+          </div>
 
-              <button
-                onClick={() => setShowDemo(true)}
-                onMouseOver={(e) =>
-                  (e.currentTarget.style.background = "rgba(255,255,255,0.2)")
-                }
-                onMouseOut={(e) =>
-                  (e.currentTarget.style.background = "transparent")
-                }
-                style={btnStyle}
-              >
-                View Demo
-              </button>
+          <UsernameInputs
+            usernames={usernames}
+            onChange={handleChange}
+            onFetch={fetchAll}
+            loading={loading}
+          />
 
-              <button
-                onClick={() => setShowAnalytics(true)}
-                onMouseOver={(e) =>
-                  (e.currentTarget.style.background = "rgba(255,255,255,0.2)")
-                }
-                onMouseOut={(e) =>
-                  (e.currentTarget.style.background = "transparent")
-                }
-                style={btnStyle}
-              >
-                View Analytics
-              </button>
-
-              <button
-                onClick={() => setShowBadges(true)}
-                onMouseOver={(e) =>
-                  (e.currentTarget.style.background = "rgba(255,255,255,0.2)")
-                }
-                onMouseOut={(e) =>
-                  (e.currentTarget.style.background = "transparent")
-                }
-                style={btnStyle}
-              >
-                🏆 Achievements
-              </button>
-
-              <button
-                onClick={() => setShowGoals(true)}
-                onMouseOver={(e) =>
-                  (e.currentTarget.style.background = "rgba(255,255,255,0.2)")
-                }
-                onMouseOut={(e) =>
-                  (e.currentTarget.style.background = "transparent")
-                }
-                style={btnStyle}
-              >
-                🎯 Goals
-              </button>
-              <button
-                onClick={() => setShowContributors(true)}
-                onMouseOver={(e) =>
-                  (e.currentTarget.style.background = "rgba(255,255,255,0.2)")
-                }
-                onMouseOut={(e) =>
-                  (e.currentTarget.style.background = "transparent")
-                }
-                style={btnStyle}
-              >
-                👥 Contributors
-              </button>
-            </div>
-
-            <ThemeToggle />
-
-            <h1>GrindMap</h1>
-
-            <UsernameInputs
-              usernames={usernames}
-              onChange={handleChange}
-              onFetch={fetchAll}
-              loading={loading}
+          <div className="overall">
+            <h2>Overall Progress</h2>
+            <CircularProgress
+              solved={totalSolved}
+              goal={OVERALL_GOAL}
+              color="#4caf50"
             />
 
             <div className="overall">
@@ -426,30 +337,23 @@ function AppContent() {
                 })}
               </div>
             </div>
-          </>
-        )}
-      </div>
+          </div>
+        </>
+      )}
+      
+      <AuthModal 
+        isOpen={showAuthModal} 
+        onClose={() => setShowAuthModal(false)} 
+      />
     </div>
   );
 }
 
-const btnStyle = {
-  padding: "10px 20px",
-  fontSize: "1em",
-  border: "none",
-  background: "transparent",
-  color: "#fff",
-  borderRadius: "8px",
-  cursor: "pointer",
-};
-
 function App() {
   return (
-    <ThemeProvider>
-      <ErrorBoundary>
-        <AppContent />
-      </ErrorBoundary>
-    </ThemeProvider>
+    <AuthProvider>
+      <AppContent />
+    </AuthProvider>
   );
 }
 
