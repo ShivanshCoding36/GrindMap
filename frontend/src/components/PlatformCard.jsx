@@ -3,6 +3,8 @@ import CircularProgress from "./CircularProgress";
 import ActivityHeatmap from "./ActivityHeatmap";
 import PlatformCardSkeleton from "./PlatformCardSkeleton";
 import styles from "./PlatformCard.module.css";
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
+import HREnhancedCard from "./HREnhancedCard";
 
 const PlatformCard = ({
   platform,
@@ -70,9 +72,7 @@ const PlatformCard = ({
 
   return (
     <div
-      className={`platform-card ${styles.card} ${
-        isExpanded ? "expanded" : ""
-      }`}
+      className={`platform-card ${styles.card} ${isExpanded ? "expanded" : ""}`}
       onClick={() => onToggle(platform.key)}
     >
       <div className="card-header">
@@ -149,7 +149,7 @@ const PlatformCard = ({
                           .toISOString()
                           .split("T")[0],
                         count,
-                      })
+                      }),
                     )}
                   />
                 ) : (
@@ -185,6 +185,10 @@ const PlatformCard = ({
                 Country Rank: <strong>#{data.country_rank || "N/A"}</strong>
               </p>
             </div>
+          )}
+
+          {platform.key === "hackerrank" && (
+            <HREnhancedCard data={data} username={data?.username || "user"} />
           )}
         </div>
       )}
