@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { PLATFORMS } from "../utils/platforms";
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5001";
 export const useGrindMapData = () => {
   const [usernames, setUsernames] = useState({
     leetcode: "",
@@ -30,9 +30,7 @@ export const useGrindMapData = () => {
     try {
       let data = null;
       if (plat.key === "leetcode") {
-        const res = await fetch(
-          `${API_BASE_URL}/api/leetcode/${username}`,
-        );
+        const res = await fetch(`${API_BASE_URL}/api/leetcode/${username}`);
         const result = await res.json();
         if (result.data) {
           data = result.data;
@@ -40,9 +38,7 @@ export const useGrindMapData = () => {
           data = { error: "User not found" };
         }
       } else if (plat.key === "codeforces") {
-        const res = await fetch(
-          `${API_BASE_URL}/api/codeforces/${username}`,
-        );
+        const res = await fetch(`${API_BASE_URL}/api/codeforces/${username}`);
         const result = await res.json();
         if (result.success && result.data) {
           const { stats } = result.data;
@@ -56,9 +52,7 @@ export const useGrindMapData = () => {
           data = { error: result.error || "User not found" };
         }
       } else if (plat.key === "codechef") {
-        const res = await fetch(
-          `${API_BASE_URL}/api/codechef/${username}`,
-        );
+        const res = await fetch(`${API_BASE_URL}/api/codechef/${username}`);
         const result = await res.json();
         if (result.success && result.data) {
           const { stats } = result.data;
@@ -69,6 +63,16 @@ export const useGrindMapData = () => {
             country_rank: stats.countryRank,
             total_stars: stats.stars,
           };
+        } else {
+          data = { error: result.error || "User not found" };
+        }
+      } else if (plat.key === "hackerrank") {
+        const res = await fetch(
+          `${API_BASE_URL}/api/scrape/hackerrank/${username}`,
+        );
+        const result = await res.json();
+        if (result.success && result.data) {
+          data = result.data;
         } else {
           data = { error: result.error || "User not found" };
         }
@@ -107,6 +111,11 @@ export const useGrindMapData = () => {
     }
     if (platKey === "codechef") {
       return data.rating ? Math.round((data.rating / 3000) * 100) : 0;
+    }
+    if (platKey === "hackerrank") {
+      return data.badges
+        ? Math.min(Math.round((data.badges.length / 10) * 100), 100)
+        : 0;
     }
     return 0;
   };
