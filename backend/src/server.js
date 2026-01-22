@@ -2,7 +2,7 @@ import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
 import { createServer } from 'http';
-import connectDB from './config/db.js';
+import DatabasePoolMonitor from './utils/databasePoolMonitor.js';
 import dbManager from './utils/databaseManager.js';
 import { corsOptions } from './config/cors.js';
 import passport from 'passport';
@@ -30,9 +30,9 @@ import DistributedSessionManager from './utils/distributedSessionManager.js';
 import WebSocketManager from './utils/websocketManager.js';
 import BatchProcessingService from './services/batchProcessing.service.js';
 import CacheWarmingService from './utils/cacheWarmingService.js';
-import JobQueue from './services/jobQueue.service.js';
+import RobustJobQueue from './utils/robustJobQueue.js';
 import CronScheduler from './services/cronScheduler.service.js';
-import JobHandlers from './services/jobHandlers.service.js';
+import ReliableJobHandlers from './services/reliableJobHandlers.service.js';
 import HealthMonitor from './utils/healthMonitor.js';
 import AlertManager from './utils/alertManager.js';
 import {
@@ -54,27 +54,36 @@ import securityRoutes from './routes/security.routes.js';
 import databaseRoutes from './routes/database.routes.js';
 import websocketRoutes from './routes/websocket.routes.js';
 import quotaRoutes from './routes/quota.routes.js';
-import jobsRoutes from './routes/jobs.routes.js';
+import jobMonitoringRoutes from './routes/jobMonitoring.routes.js';
+import fileUploadRoutes from './routes/fileUpload.routes.js';
+
 import monitoringRoutes from './routes/monitoring.routes.js';
-import grindRoomRoutes from './routes/grindRoom.routes.js';
-
 // Import secure logger to prevent JWT exposure
-import './utils/secureLogger.js';
 
+import './utils/secureLogger.js';
 // Import constants
 import { HTTP_STATUS, ENVIRONMENTS } from './constants/app.constants.js';
 import Logger from './utils/logger.js';
 
+import EnvValidator from './utils/envValidator.js';
+
+// Validate environment variables before starting
+EnvValidator.validate();
+const config = EnvValidator.getConfig();
+
 const app = express();
 const server = createServer(app);
-const PORT = process.env.PORT || 8080;
-const NODE_ENV = process.env.NODE_ENV || ENVIRONMENTS.DEVELOPMENT;
+const PORT = config.port;
+const NODE_ENV = config.nodeEnv;
 
 // Initialize global error boundary
 globalErrorBoundary();
 
-// Connect to database
-// Connect to database removed (handled in startServer)
+// Connect to database with pooling
+connectDB();
+
+// Start database pool monitoring
+DatabasePoolMonitor.startMonitoring(60000);
 
 // Initialize WebSocket server
 WebSocketManager.initialize(server);
@@ -85,16 +94,15 @@ BatchProcessingService.startScheduler();
 // Start cache warming service
 CacheWarmingService.startDefaultSchedules();
 
-// Register job handlers
-JobQueue.registerHandler('scraping', JobHandlers.handleScraping);
-JobQueue.registerHandler('cache_warmup', JobHandlers.handleCacheWarmup);
-JobQueue.registerHandler('analytics', JobHandlers.handleAnalytics);
-JobQueue.registerHandler('notification', JobHandlers.handleNotification);
-JobQueue.registerHandler('cleanup', JobHandlers.handleCleanup);
-JobQueue.registerHandler('export', JobHandlers.handleExport);
+// Register reliable job handlers
+RobustJobQueue.registerHandler('scraping', ReliableJobHandlers.handleScraping);
+RobustJobQueue.registerHandler('cache_warmup', ReliableJobHandlers.handleCacheWarmup);
+RobustJobQueue.registerHandler('analytics', ReliableJobHandlers.handleAnalytics);
+RobustJobQueue.registerHandler('notification', ReliableJobHandlers.handleNotification);
+RobustJobQueue.registerHandler('cleanup', ReliableJobHandlers.handleCleanup);
 
-// Start job processing
-JobQueue.startProcessing({ concurrency: 3, types: [] });
+// Start robust job processing
+RobustJobQueue.startProcessing();
 
 // Start cron scheduler
 CronScheduler.start();
@@ -131,6 +139,12 @@ app.use(geoSecurityCheck);
 app.use(securityAudit);
 app.use(abuseDetection);
 app.use(autoRefresh);
+
+// Request timeout handling
+app.use(apiTimeout);
+
+// API response compression
+app.use(apiCompression);
 
 // Anti-bypass rate limiting
 app.use(advancedRateLimit);
@@ -193,9 +207,10 @@ app.use('/api/security', securityRoutes);
 app.use('/api/database', databaseRoutes);
 app.use('/api/websocket', websocketRoutes);
 app.use('/api/quota', quotaRoutes);
-app.use('/api/jobs', jobsRoutes);
+app.use('/api/upload', fileUploadRoutes);
+app.use('/api/job-monitoring', jobMonitoringRoutes);
 app.use('/api/monitoring', monitoringRoutes);
-app.use('/api/rooms', grindRoomRoutes);
+app.use('/api/sprints', sprintRoutes);
 
 // API documentation endpoint
 app.get('/api', (req, res) => {
@@ -215,6 +230,7 @@ app.get('/api', (req, res) => {
       quota: '/api/quota',
       jobs: '/api/jobs',
       monitoring: '/api/monitoring',
+      sprints: '/api/sprints',
       health: '/health',
       database: '/api/database',
     },
