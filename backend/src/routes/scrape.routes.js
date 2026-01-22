@@ -1,6 +1,6 @@
 import express from 'express';
 import ScrapeController from '../controllers/scrape.controller.js';
-import { validateUsername } from '../middlewares/validation.middleware.js';
+import { validateUsername, validatePlatform } from '../middlewares/requestValidation.middleware.js';
 import { validateUsername as validateUsernameInput, sanitizeUsername } from '../middlewares/inputValidation.middleware.js';
 import { advancedRateLimit, scrapingRateLimit } from '../middlewares/antiBypassRateLimit.middleware.js';
 import { apiResponseCache } from '../middlewares/apiCache.middleware.js';
