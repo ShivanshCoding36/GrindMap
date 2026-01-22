@@ -7,7 +7,12 @@
     "start": "node src/server.js",
     "dev": "nodemon src/server.js",
     "test": "jest",
-    "test:cache": "node scripts/testRedisCache.js"
+    "test:cache": "node scripts/testRedisCache.js",
+    "audit": "npm audit --production",
+    "audit:fix": "npm audit fix",
+    "security:check": "npm audit --audit-level=moderate",
+    "security:scan": "node scripts/security-scan.js",
+    "update:check": "npm outdated"
   },
   "keywords": [
     "competitive-programming",
@@ -25,27 +30,31 @@
     "axios": "^1.13.2",
     "bcryptjs": "^3.0.3",
     "cors": "^2.8.5",
-    "dotenv": "^16.3.1",
-    "express": "^4.18.2",
-    "express-rate-limit": "^7.1.5",
-    "express-validator": "^7.0.1",
+    "dotenv": "^16.6.1",
+    "express": "^4.22.1",
+    "express-rate-limit": "^7.5.1",
+    "express-validator": "^7.3.1",
     "geoip-lite": "^1.4.10",
+    "helmet": "^8.1.0",
+    "hpp": "^0.2.3",
     "ioredis": "^5.9.2",
     "jsonwebtoken": "^9.0.3",
     "mongodb-memory-server": "^11.0.1",
-    "mongoose": "^9.1.4",
-    "morgan": "^1.10.0",
+    "mongoose": "^9.1.5",
+    "morgan": "^1.10.1",
     "nodemailer": "^7.0.12",
     "passport": "^0.7.0",
     "passport-github2": "^0.1.12",
     "puppeteer": "^24.35.0",
     "rate-limit-redis": "^4.3.1",
-    "redis": "^4.6.13",
-    "ws": "^8.16.0",
-    "xss": "^1.0.14"
+    "redis": "^4.7.1",
+    "sanitize-html": "^2.14.0",
+    "ws": "^8.19.0",
+    "xss": "^1.0.15"
   },
   "devDependencies": {
-    "nodemon": "^3.0.2"
+    "nodemon": "^3.0.2",
+    "snyk": "^1.1294.0"
   },
   "engines": {
     "node": ">=14.0.0",

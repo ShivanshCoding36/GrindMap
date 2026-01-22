@@ -9,9 +9,11 @@ import passport from 'passport';
 import configurePassport from './config/passport.js';
 import { errorHandler, notFound } from './middlewares/error.middleware.js';
 import { securityHeaders } from './middlewares/security.middleware.js';
+import { securityHeaders as helmetHeaders, additionalSecurityHeaders } from './middlewares/security.headers.middleware.js';
+import { sanitizeInput, sanitizeMongoQuery, preventParameterPollution } from './middlewares/sanitization.middleware.js';
 import { enhancedSecurityHeaders } from './middlewares/enhancedSecurity.middleware.js';
 import { requestLogger, securityMonitor } from './middlewares/logging.middleware.js';
-import { sanitizeInput } from './middlewares/validation.middleware.js';
+import { sanitizeInput as validationSanitize } from './middlewares/validation.middleware.js';
 import { advancedRateLimit } from './middlewares/antiBypassRateLimit.middleware.js';
 import { correlationId } from './middlewares/correlationId.middleware.js';
 import { performanceMetrics } from './middlewares/performance.middleware.js';
@@ -111,6 +113,8 @@ app.use(performanceMetrics);
 app.use(DistributedSessionManager.middleware());
 
 // Enhanced security middleware
+app.use(helmetHeaders); // Helmet security headers
+app.use(additionalSecurityHeaders); // Custom security headers
 app.use(enhancedSecurityHeaders);
 app.use(securityHeaders);
 app.use(requestLogger);
@@ -138,8 +142,11 @@ app.use(cors(corsOptions));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 
-// Input sanitization
-app.use(sanitizeInput);
+// Input sanitization and validation
+app.use(sanitizeInput); // XSS and injection prevention
+app.use(sanitizeMongoQuery); // MongoDB injection prevention
+app.use(preventParameterPollution({ whitelist: ['tags', 'categories'] })); // HPP prevention
+app.use(validationSanitize); // Additional validation
 
 // Passport Middleware
 app.use(passport.initialize());
