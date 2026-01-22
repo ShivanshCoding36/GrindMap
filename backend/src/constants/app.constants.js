@@ -45,6 +45,7 @@ export const PLATFORMS = {
   ATCODER: 'atcoder',
   SKILLRACK: 'skillrack',
   HACKEREARTH: 'hackerearth',
+  HACKERRANK: 'hackerrank',
 };
 
 // Response Messages

@@ -24,6 +24,11 @@ const PLATFORM_CONFIG = {
     placeholder: "e.g. tourist",
     urlPart: "hackerearth.com/@",
     regex: /^[a-zA-Z0-9_.-]+$/,
+  hackerrank: {
+    name: "HackerRank",
+    placeholder: "e.g. tourist",
+    urlPart: "hackerrank.com/profile/",
+    regex: /^[a-zA-Z0-9_]+$/,
   },
 };
 

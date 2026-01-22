@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { PLATFORMS } from "../utils/platforms";
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5001";
 export const useGrindMapData = () => {
   const [usernames, setUsernames] = useState({
     leetcode: "",
@@ -32,9 +32,7 @@ export const useGrindMapData = () => {
     try {
       let data = null;
       if (plat.key === "leetcode") {
-        const res = await fetch(
-          `${API_BASE_URL}/api/leetcode/${username}`,
-        );
+        const res = await fetch(`${API_BASE_URL}/api/leetcode/${username}`);
         const result = await res.json();
         if (result.data) {
           data = result.data;
@@ -42,9 +40,7 @@ export const useGrindMapData = () => {
           data = { error: "User not found" };
         }
       } else if (plat.key === "codeforces") {
-        const res = await fetch(
-          `${API_BASE_URL}/api/codeforces/${username}`,
-        );
+        const res = await fetch(`${API_BASE_URL}/api/codeforces/${username}`);
         const result = await res.json();
         if (result.success && result.data) {
           const { stats } = result.data;
@@ -58,9 +54,7 @@ export const useGrindMapData = () => {
           data = { error: result.error || "User not found" };
         }
       } else if (plat.key === "codechef") {
-        const res = await fetch(
-          `${API_BASE_URL}/api/codechef/${username}`,
-        );
+        const res = await fetch(`${API_BASE_URL}/api/codechef/${username}`);
         const result = await res.json();
         if (result.success && result.data) {
           const { stats } = result.data;
@@ -88,6 +82,13 @@ export const useGrindMapData = () => {
             badges: result.data.badges,
             activity: result.data.recentActivity
           };
+      } else if (plat.key === "hackerrank") {
+        const res = await fetch(
+          `${API_BASE_URL}/api/scrape/hackerrank/${username}`,
+        );
+        const result = await res.json();
+        if (result.success && result.data) {
+          data = result.data;
         } else {
           data = { error: result.error || "User not found" };
         }
@@ -133,6 +134,10 @@ export const useGrindMapData = () => {
         return Math.round((data.rating / 3000) * 100);
       }
       return data.solved ? Math.min(Math.round((data.solved / 500) * 100), 100) : 0;
+    if (platKey === "hackerrank") {
+      return data.badges
+        ? Math.min(Math.round((data.badges.length / 10) * 100), 100)
+        : 0;
     }
     return 0;
   };
@@ -164,6 +169,8 @@ export const useGrindMapData = () => {
     (platformData.codeforces?.solved || 0) +
     (platformData.codechef?.problem_fully_solved || 0) +
     (platformData.hackerearth?.solved || 0);
+    (platformData.codeforces?.totalSolved || 0) +
+    (platformData.codechef?.problem_fully_solved || 0);
 
   return {
     usernames,

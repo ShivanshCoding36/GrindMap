@@ -2,32 +2,48 @@ import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
 import { createServer } from 'http';
-import connectDB from './config/db.js';
+import DatabasePoolMonitor from './utils/databasePoolMonitor.js';
 import dbManager from './utils/databaseManager.js';
 import { corsOptions } from './config/cors.js';
+import passport from 'passport';
+import configurePassport from './config/passport.js';
 import { errorHandler, notFound } from './middlewares/error.middleware.js';
 import { securityHeaders } from './middlewares/security.middleware.js';
 import { enhancedSecurityHeaders } from './middlewares/enhancedSecurity.middleware.js';
 import { requestLogger, securityMonitor } from './middlewares/logging.middleware.js';
 import { sanitizeInput } from './middlewares/validation.middleware.js';
-import { generalLimiter } from './middlewares/rateLimiter.middleware.js';
+import { apiTimeout } from './middlewares/requestTimeout.middleware.js';
+import { advancedRateLimit } from './middlewares/antiBypassRateLimit.middleware.js';
 import { correlationId } from './middlewares/correlationId.middleware.js';
 import { performanceMetrics } from './middlewares/performance.middleware.js';
-import { distributedRateLimit, botDetection, geoSecurityCheck, securityAudit, abuseDetection } from './middlewares/advancedSecurity.middleware.js';
+import {
+  distributedRateLimit,
+  botDetection,
+  geoSecurityCheck,
+  securityAudit,
+  abuseDetection,
+} from './middlewares/advancedSecurity.middleware.js';
 import { autoRefresh } from './middlewares/jwtManager.middleware.js';
 import { globalErrorBoundary } from './middlewares/errorBoundary.middleware.js';
 import DistributedSessionManager from './utils/distributedSessionManager.js';
 import WebSocketManager from './utils/websocketManager.js';
 import BatchProcessingService from './services/batchProcessing.service.js';
 import CacheWarmingService from './utils/cacheWarmingService.js';
-import JobQueue from './services/jobQueue.service.js';
+import RobustJobQueue from './utils/robustJobQueue.js';
 import CronScheduler from './services/cronScheduler.service.js';
-import JobHandlers from './services/jobHandlers.service.js';
+import ReliableJobHandlers from './services/reliableJobHandlers.service.js';
 import HealthMonitor from './utils/healthMonitor.js';
 import AlertManager from './utils/alertManager.js';
 import { performanceMonitoring, errorTracking, memoryMonitoring } from './middlewares/monitoring.middleware.js';
 import passport from 'passport';
 import configurePassport from './config/passport.js';
+import {
+  performanceMonitoring,
+  errorTracking,
+  memoryMonitoring,
+} from './middlewares/monitoring.middleware.js';
+import RequestManager from './utils/requestManager.js';
+import PuppeteerManager from './utils/puppeteerManager.js';
 
 // Import routes
 import scrapeRoutes from './routes/scrape.routes.js';
@@ -43,24 +59,36 @@ import quotaRoutes from './routes/quota.routes.js';
 import jobsRoutes from './routes/jobs.routes.js';
 import monitoringRoutes from './routes/monitoring.routes.js';
 import ScrapeController from './controllers/scrape.controller.js';
+import grindRoomRoutes from './routes/grindRoom.routes.js';
+import tournamentRoutes from './routes/tournament.routes.js';
 
+import monitoringRoutes from './routes/monitoring.routes.js';
 // Import secure logger to prevent JWT exposure
-import './utils/secureLogger.js';
 
+import './utils/secureLogger.js';
 // Import constants
 import { HTTP_STATUS, ENVIRONMENTS } from './constants/app.constants.js';
 import Logger from './utils/logger.js';
 
+import EnvValidator from './utils/envValidator.js';
+
+// Validate environment variables before starting
+EnvValidator.validate();
+const config = EnvValidator.getConfig();
+
 const app = express();
 const server = createServer(app);
-const PORT = process.env.PORT || 8080;
-const NODE_ENV = process.env.NODE_ENV || ENVIRONMENTS.DEVELOPMENT;
+const PORT = config.port;
+const NODE_ENV = config.nodeEnv;
 
 // Initialize global error boundary
 globalErrorBoundary();
 
-// Connect to database
+// Connect to database with pooling
 connectDB();
+
+// Start database pool monitoring
+DatabasePoolMonitor.startMonitoring(60000);
 
 // Initialize WebSocket server
 WebSocketManager.initialize(server);
@@ -78,18 +106,19 @@ JobQueue.registerHandler('analytics', JobHandlers.handleAnalytics);
 JobQueue.registerHandler('notification', JobHandlers.handleNotification);
 JobQueue.registerHandler('cleanup', JobHandlers.handleCleanup);
 JobQueue.registerHandler('export', JobHandlers.handleExport);
+JobQueue.registerHandler('integrity', JobHandlers.handleIntegrity);
 
-// Start job processing
-JobQueue.startProcessing({ concurrency: 3, types: [] });
+// Start robust job processing
+RobustJobQueue.startProcessing();
 
 // Start cron scheduler
 CronScheduler.start();
 
 // Start health monitoring
-HealthMonitor.startMonitoring(30000); // Every 30 seconds
+HealthMonitor.startMonitoring(120000); // Every 2 minutes
 
 // Start alert monitoring
-AlertManager.startMonitoring(60000); // Every minute
+AlertManager.startMonitoring(300000); // Every 5 minutes
 
 // Request tracking and monitoring (first)
 app.use(correlationId);
@@ -116,8 +145,14 @@ app.use(securityAudit);
 app.use(abuseDetection);
 app.use(autoRefresh);
 
-// Distributed rate limiting
-app.use(generalLimiter);
+// Request timeout handling
+app.use(apiTimeout);
+
+// API response compression
+app.use(apiCompression);
+
+// Anti-bypass rate limiting
+app.use(advancedRateLimit);
 
 // CORS configuration
 app.use(cors(corsOptions));
@@ -139,6 +174,11 @@ app.get('/health', async (req, res) => {
   try {
     const dbHealth = await dbManager.healthCheck();
     const dbStats = dbManager.getConnectionStats();
+
+  try {
+    const dbHealth = await dbManager.healthCheck();
+    const dbStats = dbManager.getConnectionStats();
+
     res.status(HTTP_STATUS.OK).json({
       success: true,
       message: 'Server is healthy',
@@ -148,7 +188,7 @@ app.get('/health', async (req, res) => {
       sessionActive: !!req.session,
       websocketClients: WebSocketManager.getClientsCount(),
       database: dbHealth,
-      connectionStats: dbStats
+      connectionStats: dbStats,
     });
   } catch (error) {
     Logger.error('Health check failed', { error: error.message });
@@ -156,7 +196,7 @@ app.get('/health', async (req, res) => {
       success: false,
       message: 'Server unhealthy',
       error: error.message,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
   }
 });
@@ -172,9 +212,12 @@ app.use('/api/security', securityRoutes);
 app.use('/api/database', databaseRoutes);
 app.use('/api/websocket', websocketRoutes);
 app.use('/api/quota', quotaRoutes);
-app.use('/api/jobs', jobsRoutes);
+app.use('/api/upload', fileUploadRoutes);
+app.use('/api/job-monitoring', jobMonitoringRoutes);
 app.use('/api/monitoring', monitoringRoutes);
 app.get('/api/hackerearth/:username', ScrapeController.getHackerEarthStats);
+app.use('/api/rooms', grindRoomRoutes);
+app.use('/api/tournaments', tournamentRoutes);
 
 // API documentation endpoint
 app.get('/api', (req, res) => {
@@ -194,10 +237,11 @@ app.get('/api', (req, res) => {
       quota: '/api/quota',
       jobs: '/api/jobs',
       monitoring: '/api/monitoring',
+      tournaments: '/api/tournaments',
       health: '/health',
-      database: '/api/database'
+      database: '/api/database',
     },
-    correlationId: req.correlationId
+    correlationId: req.correlationId,
   });
 });
 
@@ -209,25 +253,30 @@ app.use(errorTracking);
 app.use(errorHandler);
 
 // Global error handlers for unhandled promises and exceptions
-process.on('unhandledRejection', (err) => {
+process.on('unhandledRejection', err => {
   Logger.error('Unhandled Promise Rejection', {
     error: err.message,
-    stack: err.stack
+    stack: err.stack,
   });
   process.exit(1);
 });
 
-process.on('uncaughtException', (err) => {
+process.on('uncaughtException', err => {
   Logger.error('Uncaught Exception', {
     error: err.message,
-    stack: err.stack
+    stack: err.stack,
   });
   process.exit(1);
 });
 
 // Graceful shutdown handler
-process.on('SIGTERM', () => {
+process.on('SIGTERM', async () => {
   Logger.info('SIGTERM received. Shutting down gracefully...');
+
+  // Cleanup resources
+  await RequestManager.cleanup();
+  await PuppeteerManager.cleanup();
+
   server.close(() => {
     Logger.info('Process terminated');
   });
@@ -237,17 +286,36 @@ process.on('SIGTERM', () => {
 const startServer = async () => {
   try {
     await connectDB();
+
+    // Initialize services after database connection
+    BatchProcessingService.startScheduler();
+    CacheWarmingService.startDefaultSchedules();
+
+    // Register job handlers
+    JobQueue.registerHandler('scraping', JobHandlers.handleScraping);
+    JobQueue.registerHandler('cache_warmup', JobHandlers.handleCacheWarmup);
+    JobQueue.registerHandler('analytics', JobHandlers.handleAnalytics);
+    JobQueue.registerHandler('notification', JobHandlers.handleNotification);
+    JobQueue.registerHandler('cleanup', JobHandlers.handleCleanup);
+    JobQueue.registerHandler('export', JobHandlers.handleExport);
+
+    // Start job processing
+    JobQueue.startProcessing({ concurrency: 3, types: [] });
+
+    CronScheduler.start();
+    HealthMonitor.startMonitoring(30000);
+
     server.listen(PORT, () => {
       Logger.info('Server started', {
         port: PORT,
         environment: NODE_ENV,
         healthCheck: `http://localhost:${PORT}/health`,
         websocket: `ws://localhost:${PORT}/ws`,
-        features: ['distributed-rate-limiting', 'distributed-sessions', 'real-time-updates']
+        features: ['distributed-rate-limiting', 'distributed-sessions', 'real-time-updates'],
       });
     });
   } catch (error) {
-    Logger.error('Failed to connect to database', error);
+    console.error('Failed to connect to database FATAL:', error);
     process.exit(1);
   }
 };
