@@ -74,6 +74,20 @@ router.get(
 );
 
 /**
+ * @route   GET /api/scrape/hackerearth/:username
+ * @desc    Get HackerEarth user statistics
+ * @access  Public (rate limited + cached + audited)
+ */
+router.get(
+  '/hackerearth/:username',
+  scrapingLimiter,
+  validateUsername,
+  auditLogger('FETCH_HACKEREARTH_STATS'),
+  platformCache, // 15 minutes cache
+  ScrapeController.getHackerEarthStats
+);
+
+/**
  * @route   GET /api/scrape/github/:username
  * @desc    Get GitHub user statistics
  * @access  Public (rate limited + cached + audited)
@@ -123,6 +137,8 @@ router.get(
  * @access  Public (cached)
  */
 router.get(
+  '/platforms',
+  platformCache, // 15 minutes cache
   '/platforms', 
   advancedRateLimit,
   apiResponseCache(3600),

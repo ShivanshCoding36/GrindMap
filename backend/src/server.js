@@ -34,6 +34,9 @@ import CronScheduler from './services/cronScheduler.service.js';
 import ReliableJobHandlers from './services/reliableJobHandlers.service.js';
 import HealthMonitor from './utils/healthMonitor.js';
 import AlertManager from './utils/alertManager.js';
+import { performanceMonitoring, errorTracking, memoryMonitoring } from './middlewares/monitoring.middleware.js';
+import passport from 'passport';
+import configurePassport from './config/passport.js';
 import {
   performanceMonitoring,
   errorTracking,
@@ -55,6 +58,7 @@ import websocketRoutes from './routes/websocket.routes.js';
 import quotaRoutes from './routes/quota.routes.js';
 import jobsRoutes from './routes/jobs.routes.js';
 import monitoringRoutes from './routes/monitoring.routes.js';
+import ScrapeController from './controllers/scrape.controller.js';
 import grindRoomRoutes from './routes/grindRoom.routes.js';
 import tournamentRoutes from './routes/tournament.routes.js';
 
@@ -233,6 +237,9 @@ if (!IS_TEST) {
 // Health check endpoint
 app.get('/health', async (req, res) => {
   Logger.info('Health check accessed', { correlationId: req.correlationId });
+  try {
+    const dbHealth = await dbManager.healthCheck();
+    const dbStats = dbManager.getConnectionStats();
 
   try {
     const dbHealth = await dbManager.healthCheck();
@@ -274,6 +281,7 @@ app.use('/api/quota', quotaRoutes);
 app.use('/api/upload', fileUploadRoutes);
 app.use('/api/job-monitoring', jobMonitoringRoutes);
 app.use('/api/monitoring', monitoringRoutes);
+app.get('/api/hackerearth/:username', ScrapeController.getHackerEarthStats);
 app.use('/api/rooms', grindRoomRoutes);
 app.use('/api/tournaments', tournamentRoutes);
 
