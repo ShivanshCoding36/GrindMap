@@ -144,9 +144,8 @@ export const useGrindMapData = () => {
 
   const totalSolved =
     (platformData.leetcode?.totalSolved || 0) +
-    (platformData.codeforces?.solved || 0) +
-    (platformData.codechef?.problem_fully_solved || 0) +
-    (platformData.hackerrank?.totalSolved || 0);
+    (platformData.codeforces?.totalSolved || 0) +
+    (platformData.codechef?.problem_fully_solved || 0);
 
   return {
     usernames,
