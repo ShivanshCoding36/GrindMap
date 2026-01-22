@@ -55,9 +55,12 @@ import quotaRoutes from './routes/quota.routes.js';
 import jobsRoutes from './routes/jobs.routes.js';
 import monitoringRoutes from './routes/monitoring.routes.js';
 import grindRoomRoutes from './routes/grindRoom.routes.js';
+import achievementRoutes from './routes/achievement.routes.js';
+import leaderboardRoutes from './routes/leaderboard.routes.js';
 
 // Import secure logger to prevent JWT exposure
 import './utils/secureLogger.js';
+import { seedAchievements } from './utils/achievementSeeder.js';
 
 // Import constants
 import { HTTP_STATUS, ENVIRONMENTS } from './constants/app.constants.js';
@@ -189,6 +192,8 @@ app.use('/api/quota', quotaRoutes);
 app.use('/api/jobs', jobsRoutes);
 app.use('/api/monitoring', monitoringRoutes);
 app.use('/api/rooms', grindRoomRoutes);
+app.use('/api/achievements', achievementRoutes);
+app.use('/api/leaderboard', leaderboardRoutes);
 
 // API documentation endpoint
 app.get('/api', (req, res) => {
@@ -208,6 +213,10 @@ app.get('/api', (req, res) => {
       quota: '/api/quota',
       jobs: '/api/jobs',
       monitoring: '/api/monitoring',
+      rooms: '/api/rooms',
+      sprints: '/api/sprints',
+      achievements: '/api/achievements',
+      leaderboard: '/api/leaderboard',
       health: '/health',
       database: '/api/database',
     },
@@ -256,6 +265,7 @@ process.on('SIGTERM', async () => {
 const startServer = async () => {
   try {
     await connectDB();
+    await seedAchievements();
 
     // Initialize services after database connection
     BatchProcessingService.startScheduler();

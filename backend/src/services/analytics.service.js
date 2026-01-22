@@ -277,11 +277,19 @@ class AnalyticsService {
     today.setHours(0, 0, 0, 0);
 
     // Upsert today's activity
-    await ActivityLog.findOneAndUpdate(
+    const activity = await ActivityLog.findOneAndUpdate(
       { userId, platform, action, date: today },
       { $inc: { count }, $set: { difficulty, metadata } },
       { upsert: true, new: true }
     );
+
+    // Trigger achievement engine
+    try {
+      const AchievementService = (await import('./achievement.service.js')).default;
+      await AchievementService.processActivity(userId, activity);
+    } catch (err) {
+      Logger.error("Failed to process achievements", { userId, error: err.message });
+    }
   }
 }
 
