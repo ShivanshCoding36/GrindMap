@@ -95,13 +95,22 @@ export async function scrapeLeetCode(username) {
         );
 
         // Log performance metrics for fallback success
-        ScraperErrorHandler.logPerformanceMetrics(
-          'LEETCODE',
-          validatedUsername || username,
-          startTime,
-          true,
-          true
-        );
+        try {
+          ScraperErrorHandler.logPerformanceMetrics(
+            'LEETCODE',
+            validatedUsername || username,
+            startTime,
+            true,
+            false,
+            true
+          );
+        } catch (metricsError) {
+          Logger.warn('Failed to log performance metrics for fallback success', {
+            error: metricsError.message,
+            platform: 'LEETCODE',
+            username: validatedUsername || username
+          });
+        }
 
         return result;
       }
