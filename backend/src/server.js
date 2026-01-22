@@ -12,7 +12,7 @@ import { securityHeaders } from './middlewares/security.middleware.js';
 import { enhancedSecurityHeaders } from './middlewares/enhancedSecurity.middleware.js';
 import { requestLogger, securityMonitor } from './middlewares/logging.middleware.js';
 import { sanitizeInput } from './middlewares/validation.middleware.js';
-import { advancedRateLimit } from './middlewares/antiBypassRateLimit.middleware.js';
+import { apiCompression } from './middlewares/compression.middleware.js';
 import { correlationId } from './middlewares/correlationId.middleware.js';
 import { performanceMetrics } from './middlewares/performance.middleware.js';
 import {
@@ -126,6 +126,9 @@ app.use(geoSecurityCheck);
 app.use(securityAudit);
 app.use(abuseDetection);
 app.use(autoRefresh);
+
+// API response compression
+app.use(apiCompression);
 
 // Anti-bypass rate limiting
 app.use(advancedRateLimit);
