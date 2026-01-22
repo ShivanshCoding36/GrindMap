@@ -33,6 +33,7 @@
     "geoip-lite": "^1.4.10",
     "ioredis": "^5.9.2",
     "jsonwebtoken": "^9.0.3",
+    "mongodb-memory-server": "^11.0.1",
     "mongoose": "^9.1.4",
     "morgan": "^1.10.0",
     "multer": "^2.0.2",
