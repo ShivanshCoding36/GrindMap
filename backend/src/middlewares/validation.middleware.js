@@ -1,5 +1,6 @@
 import { body, param, validationResult } from 'express-validator';
 import xss from 'xss';
+import { escapeString } from '../utils/dbSanitizer.js';
 import { AppError } from '../utils/appError.js';
 
 // Sanitization middleware
@@ -7,14 +8,14 @@ const sanitizeInput = (req, res, next) => {
   // Sanitize params
   Object.keys(req.params).forEach(key => {
     if (typeof req.params[key] === 'string') {
-      req.params[key] = xss(req.params[key].trim());
+      req.params[key] = escapeString(xss(req.params[key].trim()));
     }
   });
 
   // Sanitize query
   Object.keys(req.query).forEach(key => {
     if (typeof req.query[key] === 'string') {
-      req.query[key] = xss(req.query[key].trim());
+      req.query[key] = escapeString(xss(req.query[key].trim()));
     }
   });
 
@@ -22,7 +23,7 @@ const sanitizeInput = (req, res, next) => {
   if (req.body && typeof req.body === 'object') {
     Object.keys(req.body).forEach(key => {
       if (typeof req.body[key] === 'string') {
-        req.body[key] = xss(req.body[key].trim());
+        req.body[key] = escapeString(xss(req.body[key].trim()));
       }
     });
   }
