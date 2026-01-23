@@ -12,6 +12,7 @@ import { securityHeaders } from './middlewares/security.middleware.js';
 import { enhancedSecurityHeaders } from './middlewares/enhancedSecurity.middleware.js';
 import { requestLogger, securityMonitor } from './middlewares/logging.middleware.js';
 import { auditLogger, securityAudit } from './middlewares/audit.middleware.js';
+import { injectionProtection } from './middlewares/injection.middleware.js';
 import { sanitizeInput, validateUsername } from './middlewares/validation.middleware.js';
 import { generalLimiter, scrapingLimiter } from './middlewares/rateLimiter.middleware.js';
 import { asyncHandler } from './utils/asyncHandler.js';
@@ -62,6 +63,7 @@ if (!IS_TEST) {
 
 app.use(auditLogger);
 app.use(securityAudit);
+app.use(injectionProtection);
 app.use(secureLogger);
 app.use(requestLogger);
 app.use(securityMonitor);
