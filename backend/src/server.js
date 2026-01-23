@@ -16,6 +16,7 @@ import { injectionProtection } from './middlewares/injection.middleware.js';
 import { xssProtection } from './middlewares/xss.middleware.js';
 import { monitoringMiddleware } from './middlewares/monitoring.middleware.js';
 import { memoryMiddleware } from './middlewares/memory.middleware.js';
+import { cpuProtection, heavyOperationProtection } from './middlewares/cpuProtection.middleware.js';
 import { responseSizeLimit, compressionBombProtection, healthSizeLimit, auditSizeLimit, securitySizeLimit, scrapingSizeLimit } from './middlewares/responseLimit.middleware.js';
 import { validateContentType, healthBodyLimit, auditBodyLimit, securityBodyLimit } from './middlewares/bodyLimit.middleware.js';
 import { timeoutMiddleware, scrapingTimeout, healthTimeout, auditTimeout, securityTimeout } from './middlewares/timeout.middleware.js';
@@ -38,7 +39,9 @@ import { secureLogger, secureErrorHandler } from './middlewares/secureLogging.mi
 import { validateEnvironment } from './config/environment.js';
 import { connectionManager } from './utils/connectionManager.js';
 import { memoryMonitor } from './services/memoryMonitor.service.js';
+import { cpuMonitor } from './services/cpuMonitor.service.js';
 import { bandwidthMonitor } from './services/bandwidthMonitor.service.js';
+import { processLimiter } from './utils/processLimiter.js';
 import { cacheManager } from './utils/cacheManager.js';
 import { gracefulShutdown } from './utils/shutdown.util.js';
 
@@ -53,8 +56,14 @@ validateEnvironment();
 // Start memory monitoring
 memoryMonitor.start();
 
+// Start CPU monitoring
+cpuMonitor.start();
+
 // Start bandwidth monitoring
 bandwidthMonitor.start();
+
+// Set process resource limits
+processLimiter.setLimits();
 
 // Setup memory event handlers
 memoryMonitor.on('warning', ({ usage, ratio }) => {
@@ -69,6 +78,27 @@ memoryMonitor.on('critical', ({ usage, ratio }) => {
 memoryMonitor.on('emergency', ({ usage, ratio }) => {
   console.error(`💥 Memory emergency: ${Math.round(ratio * 100)}% usage`);
   cacheManager.clearAll(); // Clear all caches
+});
+
+// Setup CPU event handlers
+cpuMonitor.on('warning', ({ cpuPercent }) => {
+  console.warn(`⚠️ CPU warning: ${cpuPercent.toFixed(1)}% usage`);
+});
+
+cpuMonitor.on('critical', ({ cpuPercent }) => {
+  console.error(`🚨 CPU critical: ${cpuPercent.toFixed(1)}% usage`);
+  // Trigger garbage collection to free up resources
+  if (global.gc) global.gc();
+});
+
+cpuMonitor.on('emergency', ({ cpuPercent }) => {
+  console.error(`💥 CPU emergency: ${cpuPercent.toFixed(1)}% usage`);
+  // Emergency cleanup
+  cacheManager.clearAll();
+  if (global.gc) {
+    global.gc();
+    global.gc(); // Double GC in emergency
+  }
 });
 
 const app = express();
@@ -103,6 +133,7 @@ if (!IS_TEST) {
 
 app.use(auditLogger);
 app.use(securityAudit);
+app.use(cpuProtection);
 app.use(memoryMiddleware);
 app.use(compressionBombProtection);
 app.use(responseSizeLimit()); // Default 500KB response limit
@@ -164,6 +195,7 @@ app.use('/api/security', securityBodyLimit, securitySizeLimit, securityTimeout, 
 app.get('/api/leetcode/:username', 
   scrapingSizeLimit,
   scrapingTimeout,
+  heavyOperationProtection,
   scrapingLimiter, 
   validateUsername, 
   asyncHandler(async (req, res) => {
@@ -190,6 +222,7 @@ app.get('/api/leetcode/:username',
 app.get('/api/codeforces/:username',
   scrapingSizeLimit,
   scrapingTimeout,
+  heavyOperationProtection,
   validateUsername,
   asyncHandler(async (req, res) => {
     const username = req.params.username;
@@ -206,6 +239,7 @@ app.get('/api/codeforces/:username',
 app.get('/api/codechef/:username',
   scrapingSizeLimit,
   scrapingTimeout,
+  heavyOperationProtection,
   validateUsername,
   asyncHandler(async (req, res) => {
     const username = req.params.username;

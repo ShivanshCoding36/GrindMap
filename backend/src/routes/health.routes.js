@@ -1,7 +1,9 @@
 import express from 'express';
 import { getActiveRequests, cleanupStaleRequests } from '../middlewares/timeout.middleware.js';
 import { memoryMonitor } from '../services/memoryMonitor.service.js';
+import { cpuMonitor } from '../services/cpuMonitor.service.js';
 import { bandwidthMonitor } from '../services/bandwidthMonitor.service.js';
+import { processLimiter } from '../utils/processLimiter.js';
 import { cacheManager } from '../utils/cacheManager.js';
 import { getSystemHealth, checkDependencies, getDetailedMetrics } from '../services/health.service.js';
 
@@ -36,8 +38,10 @@ router.get('/metrics', (req, res) => {
     const metrics = getDetailedMetrics();
     const activeRequests = getActiveRequests();
     const memoryStats = memoryMonitor.getStats();
+    const cpuStats = cpuMonitor.getStats();
     const cacheStats = cacheManager.getStats();
     const bandwidthStats = bandwidthMonitor.getStats();
+    const processStats = processLimiter.getStats();
     
     res.json({
       ...metrics,
@@ -46,8 +50,10 @@ router.get('/metrics', (req, res) => {
         requests: activeRequests
       },
       memory: memoryStats,
+      cpu: cpuStats,
       caches: cacheStats,
-      bandwidth: bandwidthStats
+      bandwidth: bandwidthStats,
+      process: processStats
     });
   } catch (error) {
     res.status(500).json({
