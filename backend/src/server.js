@@ -13,6 +13,7 @@ import { enhancedSecurityHeaders } from './middlewares/enhancedSecurity.middlewa
 import { requestLogger, securityMonitor } from './middlewares/logging.middleware.js';
 import { auditLogger, securityAudit } from './middlewares/audit.middleware.js';
 import { injectionProtection } from './middlewares/injection.middleware.js';
+import { xssProtection } from './middlewares/xss.middleware.js';
 import { adaptiveRateLimit, strictRateLimit, burstProtection, ddosProtection } from './middlewares/ddos.middleware.js';
 import { ipFilter } from './utils/ipManager.js';
 import { sanitizeInput, validateUsername } from './middlewares/validation.middleware.js';
@@ -76,6 +77,7 @@ app.use(ddosProtection);
 app.use(burstProtection);
 app.use(adaptiveRateLimit);
 app.use(injectionProtection);
+app.use(xssProtection);
 app.use(secureLogger);
 app.use(requestLogger);
 app.use(securityMonitor);
