@@ -60,6 +60,7 @@ import { gracefulShutdown } from './utils/shutdown.util.js';
 import { authBypassProtection, validateToken } from './middlewares/auth.middleware.js';
 import { fileUploadSecurity, validateFileExtensions, detectEncodedFiles } from './middlewares/fileUpload.middleware.js';
 import { apiVersionSecurity, deprecationWarning, validateApiEndpoint, versionRateLimit } from './middlewares/apiVersion.middleware.js';
+import { csrfProtection, csrfTokenEndpoint } from './middlewares/csrf.middleware.js';
 
 // Set default NODE_ENV if not provided
 if (!process.env.NODE_ENV) {
@@ -189,12 +190,16 @@ app.use('/api/audit', auditBodyLimit, auditSizeLimit, auditTimeout, strictRateLi
 // Security management routes
 app.use('/api/security', securityBodyLimit, securitySizeLimit, securityTimeout, strictRateLimit, securityRoutes);
 
+// CSRF token endpoint
+app.get('/api/csrf-token', csrfTokenEndpoint);
+
 app.get('/api/leetcode/:username', 
   scrapingBodyLimit,
   scrapingSizeLimit,
   scrapingTimeout,
   heavyOperationProtection,
   scrapingLimiter, 
+  csrfProtection,
   validateUsername, 
   asyncHandler(async (req, res) => {
     const { username } = req.params;
@@ -203,7 +208,7 @@ app.get('/api/leetcode/:username',
       withTrace(req.traceId, "leetcode.scrape", () =>
         scrapeLeetCode(username)
       )
-    );
+    );//done
     
     res.json({
       success: true,
@@ -218,6 +223,7 @@ app.get('/api/codeforces/:username',
   scrapingSizeLimit,
   scrapingTimeout,
   heavyOperationProtection,
+  csrfProtection,
   validateUsername,
   asyncHandler(async (req, res) => {
     const { username } = req.params;
@@ -236,6 +242,7 @@ app.get('/api/codechef/:username',
   scrapingSizeLimit,
   scrapingTimeout,
   heavyOperationProtection,
+  csrfProtection,
   validateUsername,
   asyncHandler(async (req, res) => {
     const { username } = req.params;
