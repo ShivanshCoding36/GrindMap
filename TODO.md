@@ -1,51 +1,21 @@
-## Overview
-Split the ScraperErrorHandler class into smaller, focused classes to follow Single Responsibility Principle.
+# Normalizer Refactoring Task
 
-## New Classes to Create
-- [ ] ErrorClassifier - error type detection
-- [ ] RetryManager - retry logic with backoff
-- [ ] ScraperResponseBuilder - creating standardized responses
-- [ ] ScraperMetricsLogger - performance logging
+## Completed Tasks
+- [x] Analyzed existing normalizer functions (codeforces, codechef, leetcode)
+- [x] Created BaseNormalizer class in common.normalizer.js with standardized input/output contracts
+- [x] Refactored CodeforcesNormalizer to extend BaseNormalizer
+- [x] Refactored CodeChefNormalizer to extend BaseNormalizer
+- [x] Refactored LeetCodeNormalizer to extend BaseNormalizer
+- [x] Updated platform.service.js to use normalizeLeetCode consistently
+- [x] Updated testScrapers.js to use new input format for normalizeLeetCode
 
-## Refactor ScraperErrorHandler
-- [ ] Update ScraperErrorHandler to delegate to new classes
-- [ ] Maintain same public API to minimize changes to other files
-- [ ] Remove duplicated logic from ScraperErrorHandler
+## Remaining Tasks
+- [ ] Test the refactored normalizers to ensure they work correctly
+- [ ] Verify that the output structures are consistent across platforms
+- [ ] Update any other files that might be using the old normalizer functions
 
-## Testing
-- [ ] Run existing tests to ensure no breaking changes
-- [ ] Update tests if necessary
-
-## Files to Update
-- [ ] backend/src/utils/scraperErrorHandler.js
-- [ ] Create backend/src/utils/errorClassifier.js
-- [ ] Create backend/src/utils/retryManager.js
-- [ ] Create backend/src/utils/scraperResponseBuilder.js
-- [ ] Create backend/src/utils/scraperMetricsLogger.js
-=======
-# Refactor ScraperErrorHandler - God Class Anti-Pattern
-
-## Overview
-Split the ScraperErrorHandler class into smaller, focused classes to follow Single Responsibility Principle.
-
-## New Classes to Create
-- [x] ErrorClassifier - error type detection
-- [x] RetryManager - retry logic with backoff
-- [x] ScraperResponseBuilder - creating standardized responses
-- [x] ScraperMetricsLogger - performance logging
-
-## Refactor ScraperErrorHandler
-- [x] Update ScraperErrorHandler to delegate to new classes
-- [x] Maintain same public API to minimize changes to other files
-- [x] Remove duplicated logic from ScraperErrorHandler
-
-## Testing
-- [ ] Run existing tests to ensure no breaking changes
-- [ ] Update tests if necessary
-
-## Files to Update
-- [x] backend/src/utils/scraperErrorHandler.js
-- [x] Create backend/src/utils/errorClassifier.js
-- [x] Create backend/src/utils/retryManager.js
-- [x] Create backend/src/utils/scraperResponseBuilder.js
-- [x] Create backend/src/utils/scraperMetricsLogger.js
+## Summary of Changes
+- Created a BaseNormalizer class that enforces consistent input format: { username, data }
+- Standardized common output fields: platform, username, rating, totalSolved, rank
+- Platform-specific fields are added in subclasses (e.g., maxRating for Codeforces, countryRank for CodeChef)
+- All normalizers now follow the same pattern and validate inputs consistently

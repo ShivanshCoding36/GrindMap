@@ -6,6 +6,7 @@ import { scrapeGitHub } from './scraping/github.scraper.js';
 import { fetchSkillRackStats } from './scraping/skillrack.scraper.js';
 import { normalizeCodeforces } from './normalization/codeforces.normalizer.js';
 import { normalizeCodeChef } from './normalization/codechef.normalizer.js';
+import { normalizeLeetCode } from './normalization/leetcode.normalizer.js';
 import { PLATFORMS, MESSAGES } from '../constants/app.constants.js';
 import { AppError, ERROR_CODES } from '../utils/appError.js';
 import redis from '../config/redis.js';
@@ -41,10 +42,11 @@ class PlatformService {
 
     try {
       const scraperResult = await scrapeLeetCode(username);
+      const normalizedData = normalizeLeetCode({ username, data: scraperResult.data });
       const result = {
         platform: PLATFORMS.LEETCODE,
         username,
-        ...scraperResult.data,
+        ...normalizedData,
         fromCache: scraperResult.fromCache,
         fromFallback: scraperResult.fromFallback
       };
