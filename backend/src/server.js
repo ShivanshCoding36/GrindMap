@@ -36,13 +36,6 @@ import ReliableJobHandlers from './services/reliableJobHandlers.service.js';
 import HealthMonitor from './utils/healthMonitor.js';
 import AlertManager from './utils/alertManager.js';
 import { performanceMonitoring, errorTracking, memoryMonitoring } from './middlewares/monitoring.middleware.js';
-import passport from 'passport';
-import configurePassport from './config/passport.js';
-import {
-  performanceMonitoring,
-  errorTracking,
-  memoryMonitoring,
-} from './middlewares/monitoring.middleware.js';
 import RequestManager from './utils/requestManager.js';
 import PuppeteerManager from './utils/puppeteerManager.js';
 
@@ -349,6 +342,9 @@ app.use(notFound);
 app.use(secureErrorHandler);
 app.use(errorHandler);
 
+// Start server function
+const startServer = async () => {
+  try {
     // Initialize services after database connection
     BatchProcessingService.startScheduler();
     CacheWarmingService.startDefaultSchedules();
