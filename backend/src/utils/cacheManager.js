@@ -1,4 +1,5 @@
 import Redis from 'ioredis';
+import Logger from './logger.js';
 
 class CacheManager {
   constructor() {
@@ -20,15 +21,15 @@ class CacheManager {
 
       this.redis.on('connect', () => {
         this.isConnected = true;
-        console.log('✅ Redis connected');
+        Logger.info('Redis connected');
       });
 
       this.redis.on('error', (err) => {
         this.isConnected = false;
-        console.warn('⚠️ Redis unavailable, using fallback');
+        Logger.warn('Redis unavailable, using fallback');
       });
     } catch (error) {
-      console.warn('⚠️ Redis initialization failed, caching disabled');
+      Logger.warn('Redis initialization failed, caching disabled');
     }
   }
 
