@@ -9,6 +9,7 @@ import PlatformManager from "./components/PlatformManager";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Analytics from "./components/Analytics";
 import Goals from "./components/Goals";
+import Recommendations from "./components/Recommendations";
 
 function App() {
   return (
@@ -75,6 +76,15 @@ function App() {
           element={
             <ProtectedRoute>
               <Goals />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/recommendations"
+          element={
+            <ProtectedRoute>
+              <Recommendations />
             </ProtectedRoute>
           }
         />

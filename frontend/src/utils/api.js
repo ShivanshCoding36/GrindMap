@@ -800,6 +800,265 @@ export const goalsAPI = {
   },
 };
 
+// Recommendations mock data and helpers
+const mockProblemBank = [
+  {
+    id: 'p1',
+    title: 'Two Sum',
+    difficulty: 'Easy',
+    platform: 'LeetCode',
+    tags: ['Array', 'Hash Table'],
+    acceptance: 46,
+  },
+  {
+    id: 'p2',
+    title: 'Valid Parentheses',
+    difficulty: 'Easy',
+    platform: 'LeetCode',
+    tags: ['Stack', 'String'],
+    acceptance: 38,
+  },
+  {
+    id: 'p3',
+    title: '3Sum',
+    difficulty: 'Medium',
+    platform: 'LeetCode',
+    tags: ['Two Pointers', 'Sorting'],
+    acceptance: 32,
+  },
+  {
+    id: 'p4',
+    title: 'Longest Substring Without Repeating Characters',
+    difficulty: 'Medium',
+    platform: 'LeetCode',
+    tags: ['Sliding Window', 'Hash Table'],
+    acceptance: 30,
+  },
+  {
+    id: 'p5',
+    title: 'Median of Two Sorted Arrays',
+    difficulty: 'Hard',
+    platform: 'LeetCode',
+    tags: ['Binary Search', 'Divide and Conquer'],
+    acceptance: 29,
+  },
+  {
+    id: 'p6',
+    title: 'Watermelon',
+    difficulty: 'Easy',
+    platform: 'Codeforces',
+    tags: ['Math'],
+    acceptance: 85,
+  },
+  {
+    id: 'p7',
+    title: 'Beautiful Matrix',
+    difficulty: 'Easy',
+    platform: 'Codeforces',
+    tags: ['Implementation'],
+    acceptance: 63,
+  },
+  {
+    id: 'p8',
+    title: 'Array Manipulation',
+    difficulty: 'Hard',
+    platform: 'HackerRank',
+    tags: ['Array', 'Prefix Sum'],
+    acceptance: 18,
+  },
+  {
+    id: 'p9',
+    title: 'Coin Change',
+    difficulty: 'Medium',
+    platform: 'LeetCode',
+    tags: ['Dynamic Programming'],
+    acceptance: 41,
+  },
+  {
+    id: 'p10',
+    title: 'Robot Return to Origin',
+    difficulty: 'Easy',
+    platform: 'LeetCode',
+    tags: ['Simulation', 'String'],
+    acceptance: 74,
+  },
+  {
+    id: 'p11',
+    title: 'Graph Valid Tree',
+    difficulty: 'Medium',
+    platform: 'LeetCode',
+    tags: ['Graph', 'Union Find'],
+    acceptance: 48,
+  },
+  {
+    id: 'p12',
+    title: 'Kth Smallest Element in a BST',
+    difficulty: 'Medium',
+    platform: 'LeetCode',
+    tags: ['Tree', 'DFS'],
+    acceptance: 67,
+  },
+  {
+    id: 'p13',
+    title: 'Chef and Strings',
+    difficulty: 'Medium',
+    platform: 'CodeChef',
+    tags: ['String', 'Math'],
+    acceptance: 52,
+  },
+  {
+    id: 'p14',
+    title: 'Div2 Round Practice',
+    difficulty: 'Medium',
+    platform: 'Codeforces',
+    tags: ['Greedy', 'Math'],
+    acceptance: 36,
+  },
+  {
+    id: 'p15',
+    title: 'Shortest Path in Binary Matrix',
+    difficulty: 'Medium',
+    platform: 'LeetCode',
+    tags: ['BFS', 'Matrix'],
+    acceptance: 39,
+  },
+];
+
+const randomReason = (mode, problem) => {
+  if (mode === 'weak') return 'Practice weak topic';
+  if (mode === 'level-up') return 'Slightly harder than your median';
+  if (mode === 'review') return 'Review similar patterns you solved';
+  return `Good fit for ${problem.platform}`;
+};
+
+const inferWeakTopics = () => {
+  const topicStats = {};
+  mockActivities.forEach((activity) => {
+    (activity.tags || []).forEach((tag) => {
+      if (!topicStats[tag]) {
+        topicStats[tag] = { topic: tag, attempts: 0, solved: 0 };
+      }
+      topicStats[tag].attempts += activity.attempts || 1;
+      if (activity.status === 'Solved') {
+        topicStats[tag].solved += 1;
+      }
+    });
+  });
+
+  return Object.values(topicStats)
+    .map((item) => ({
+      ...item,
+      weaknessScore: item.attempts ? Math.max(0, 100 - Math.round((item.solved / item.attempts) * 100)) : 0,
+    }))
+    .sort((a, b) => b.weaknessScore - a.weaknessScore)
+    .slice(0, 8);
+};
+
+const buildRecommendations = (params = {}) => {
+  const {
+    difficulty,
+    platform,
+    topics = [],
+    mode = 'mixed',
+    limit = 12,
+  } = params;
+
+  const topicList = Array.isArray(topics) ? topics : [];
+  const weakTopics = inferWeakTopics();
+
+  let pool = [...mockProblemBank];
+
+  if (difficulty && difficulty !== 'all') {
+    pool = pool.filter((p) => p.difficulty.toLowerCase() === difficulty.toLowerCase());
+  }
+  if (platform && platform !== 'all') {
+    pool = pool.filter((p) => p.platform.toLowerCase() === platform.toLowerCase());
+  }
+  if (topicList.length) {
+    pool = pool.filter((p) => topicList.some((t) => p.tags.map((tg) => tg.toLowerCase()).includes(t.toLowerCase())));
+  }
+
+  if (mode === 'weak') {
+    const topWeak = weakTopics.map((t) => t.topic.toLowerCase());
+    pool = pool.filter((p) => p.tags.some((tag) => topWeak.includes(tag.toLowerCase())));
+  }
+
+  if (mode === 'level-up') {
+    pool = pool.filter((p) => p.difficulty === 'Medium' || p.difficulty === 'Hard');
+  }
+
+  if (mode === 'review') {
+    pool = pool.filter((p) => p.tags.some((tag) => ['String', 'Array', 'Hash Table'].includes(tag)));
+  }
+
+  const selected = pool.slice(0, limit).map((problem) => ({
+    ...problem,
+    reason: randomReason(mode, problem),
+    acceptance: problem.acceptance || Math.floor(Math.random() * 40) + 30,
+    bookmarked: false,
+  }));
+
+  const history = mockActivities.slice(0, 6).map((activity) => ({
+    id: activity.id,
+    title: activity.problemName,
+    difficulty: activity.difficulty,
+    platform: activity.platform,
+    status: activity.status,
+  }));
+
+  return {
+    recommendations: selected,
+    weakTopics,
+    history,
+  };
+};
+
+const mockGetRecommendations = (params) => new Promise((resolve) => {
+  setTimeout(() => {
+    resolve({ data: buildRecommendations(params) });
+  }, 350);
+});
+
+const mockBookmarkProblem = (id) => new Promise((resolve) => {
+  setTimeout(() => {
+    resolve({ data: { id, bookmarked: true } });
+  }, 150);
+});
+
+const mockSkipProblem = (id) => new Promise((resolve) => {
+  setTimeout(() => resolve({ data: { id, skipped: true } }), 150);
+});
+
+export const recommendationsAPI = {
+  getRecommendations: async (params = {}) => {
+    try {
+      const response = await api.get('/recommendations', { params });
+      return response;
+    } catch (error) {
+      console.log('Using mock recommendations');
+      return mockGetRecommendations(params);
+    }
+  },
+  bookmark: async (id) => {
+    try {
+      const response = await api.post(`/recommendations/${id}/bookmark`);
+      return response;
+    } catch (error) {
+      console.log('Using mock bookmark');
+      return mockBookmarkProblem(id);
+    }
+  },
+  skip: async (id) => {
+    try {
+      const response = await api.post(`/recommendations/${id}/skip`);
+      return response;
+    } catch (error) {
+      console.log('Using mock skip');
+      return mockSkipProblem(id);
+    }
+  },
+};
+
 // Mock platform connections data
 const mockPlatformConnections = [
   {
