@@ -44,10 +44,19 @@ function App() {
         />
 
         <Route
-          path="/settings"
+          path="/activity"
           element={
             <ProtectedRoute>
-              <Settings />
+              <ActivityHistory />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/platforms"
+          element={
+            <ProtectedRoute>
+              <PlatformManager />
             </ProtectedRoute>
           }
         />
