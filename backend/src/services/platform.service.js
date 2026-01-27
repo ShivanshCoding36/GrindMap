@@ -14,6 +14,8 @@ import AdvancedCacheManager from '../utils/advancedCacheManager.js';
 import config from '../config/env.js';
 import DataChangeEmitter from '../utils/dataChangeEmitter.js';
 import NotificationService from './notification.service.js';
+import Logger from '../utils/logger.js';
+import { asyncWrapper } from '../utils/asyncWrapper.js';
 
 /**
  * Platform scraping service - handles all platform data fetching
@@ -56,7 +58,7 @@ class PlatformService {
         try {
           await redis.set(cacheKey, JSON.stringify(result), config.CACHE_PLATFORM_TTL);
         } catch (cacheError) {
-          console.warn('Cache write failed for LeetCode:', cacheError.message);
+          Logger.warn('Cache write failed for LeetCode', { error: cacheError.message, username });
         }
       }
       
@@ -64,7 +66,7 @@ class PlatformService {
         try {
           DataChangeEmitter.emitPlatformUpdate(PLATFORMS.LEETCODE, username, result, userId);
         } catch (emitError) {
-          console.warn('Real-time update failed for LeetCode:', emitError.message);
+          Logger.warn('Real-time update failed for LeetCode', { error: emitError.message, username, userId });
         }
       }
       
