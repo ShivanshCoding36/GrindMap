@@ -4,6 +4,7 @@ import ActivityLog from "../models/activityLog.model.js";
 import AnalyticsService from "./analytics.service.js";
 import WebSocketManager from "../utils/websocketManager.js";
 import Logger from "../logger.js";
+import mongoose from "mongoose";
 
 class AchievementService {
     /**
