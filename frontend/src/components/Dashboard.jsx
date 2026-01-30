@@ -1,12 +1,13 @@
-import React, { useState } from "react";
+import React, { useState, lazy, Suspense } from "react";
 import "../App.css";
 import CircularProgress from "./CircularProgress";
 
 import DemoPage from "./DemoPage";
-import AnalyticsDashboard from "./AnalyticsDashboard";
-import BadgeCollection from "./BadgeCollection";
+const AnalyticsDashboard = lazy(() => import("./AnalyticsDashboard"));
+const BadgeCollection = lazy(() => import("./BadgeCollection"));
 import UsernameInputs from "./UsernameInputs";
 import PlatformCard from "./PlatformCard";
+import LoadingFallback from "./LoadingFallback";
 import { useGrindMapData } from "../hooks/useGrindMapData";
 import { PLATFORMS, OVERALL_GOAL } from "../utils/platforms";
 
@@ -45,14 +46,18 @@ function Dashboard() {
           <button onClick={() => setShowAnalytics(false)} className="back-btn">
             ← Back to Main
           </button>
-          <AnalyticsDashboard platformData={platformData} />
+          <Suspense fallback={<LoadingFallback />}>
+            <AnalyticsDashboard platformData={platformData} />
+          </Suspense>
         </>
       ) : showBadges ? (
         <>
           <button onClick={() => setShowBadges(false)} className="back-btn">
             ← Back to Main
           </button>
-          <BadgeCollection />
+          <Suspense fallback={<LoadingFallback />}>
+            <BadgeCollection />
+          </Suspense>
         </>
       ) : (
         <>
