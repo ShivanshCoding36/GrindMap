@@ -63,6 +63,15 @@ function App() {
         />
 
         <Route
+          path="/platforms"
+          element={
+            <ProtectedRoute>
+              <PlatformManager />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
           path="/analytics"
           element={
             <ProtectedRoute>
