@@ -43,6 +43,7 @@ import { authBypassProtection, validateToken } from './middlewares/auth.middlewa
 import { fileUploadSecurity, validateFileExtensions, detectEncodedFiles } from './middlewares/fileUpload.middleware.js';
 import { apiVersionSecurity, deprecationWarning, validateApiEndpoint, versionRateLimit } from './middlewares/apiVersion.middleware.js';
 import { csrfProtection, csrfTokenEndpoint } from './middlewares/csrf.middleware.js';
+import platformRoutes from './routes/platform.routes.js';
 
 // Set default NODE_ENV if not provided
 if (!process.env.NODE_ENV) {
@@ -148,6 +149,9 @@ app.use('/api/audit', auditBodyLimit, auditSizeLimit, auditTimeout, strictRateLi
 
 // Security management routes
 app.use('/api/security', securityBodyLimit, securitySizeLimit, securityTimeout, strictRateLimit, securityRoutes);
+
+// Platform connection routes
+app.use('/api/platforms', platformRoutes);
 
 // Root route
 app.get('/', (req, res) => {
