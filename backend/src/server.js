@@ -299,10 +299,8 @@ app.get('/api', (req, res) => {
   });
 });
 
-// 404 handler for undefined routes
-app.use(notFound);
-app.use(secureErrorHandler);
-app.use(errorHandler);
+// Setup routes
+setupRoutes(app);
 
 // Global error handlers for unhandled promises and exceptions
 process.on('unhandledRejection', err => {
