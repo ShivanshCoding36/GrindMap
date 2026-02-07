@@ -1,5 +1,6 @@
 import React, { useState, lazy, Suspense } from "react";
 import "../App.css";
+import styles from "./Dashboard.module.css";
 import CircularProgress from "./CircularProgress";
 
 import DemoPage from "./DemoPage";
@@ -62,48 +63,22 @@ function Dashboard() {
         </>
       ) : (
         <>
-          <div style={{ textAlign: "center", marginBottom: "20px" }}>
+          <div className={styles.buttonContainer}>
             <button
               onClick={() => setShowDemo(true)}
-              style={{
-                padding: "10px 20px",
-                fontSize: "1em",
-                background: "#667eea",
-                color: "white",
-                border: "none",
-                borderRadius: "8px",
-                cursor: "pointer",
-                marginRight: "10px",
-              }}
+              className={styles.demoButton}
             >
               View Demo
             </button>
             <button
               onClick={() => setShowAnalytics(true)}
-              style={{
-                padding: "10px 20px",
-                fontSize: "1em",
-                background: "#4caf50",
-                color: "white",
-                border: "none",
-                borderRadius: "8px",
-                cursor: "pointer",
-                marginRight: "10px",
-              }}
+              className={styles.analyticsButton}
             >
               View Analytics
             </button>
             <button
               onClick={() => setShowBadges(true)}
-              style={{
-                padding: "10px 20px",
-                fontSize: "1em",
-                background: "#9b59b6",
-                color: "white",
-                border: "none",
-                borderRadius: "8px",
-                cursor: "pointer",
-              }}
+              className={styles.achievementsButton}
             >
               🏆 Achievements
             </button>
