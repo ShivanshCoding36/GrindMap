@@ -6,87 +6,96 @@ import Logger from './logger.js';
  */
 class ErrorClassifier {
   /**
+   * Private helper method to check error patterns based on configuration
+   */
+  static #checkErrorPattern(error, config) {
+    const { statusCheck, errorCodes, messagePatterns } = config;
+    const status = error.response?.status;
+
+    if (statusCheck && statusCheck(status)) return true;
+    if (errorCodes && errorCodes.includes(error.code)) return true;
+
+    const message = error.message?.toLowerCase();
+    if (messagePatterns && messagePatterns.some(pattern => message?.includes(pattern))) return true;
+
+    return false;
+  }
+
+  /**
    * Check if error is network-related
    */
   static isNetworkError(error) {
-    const networkCodes = ['ECONNRESET', 'ENOTFOUND', 'ECONNREFUSED', 'NETWORK_ERROR'];
-    const networkMessages = ['network error', 'connection refused', 'dns lookup failed'];
-
-    return networkCodes.includes(error.code) ||
-           networkMessages.some(msg => error.message?.toLowerCase().includes(msg));
+    return this.#checkErrorPattern(error, {
+      statusCheck: null,
+      errorCodes: ['ECONNRESET', 'ENOTFOUND', 'ECONNREFUSED', 'NETWORK_ERROR'],
+      messagePatterns: ['network error', 'connection refused', 'dns lookup failed']
+    });
   }
 
   /**
    * Check if error is rate limiting
    */
   static isRateLimitError(error) {
-    const status = error.response?.status;
-    const message = error.message?.toLowerCase();
-
-    return status === 429 ||
-           error.code === 'RATE_LIMITED' ||
-           message?.includes('rate limit') ||
-           message?.includes('too many requests');
+    return this.#checkErrorPattern(error, {
+      statusCheck: (status) => status === 429,
+      errorCodes: ['RATE_LIMITED'],
+      messagePatterns: ['rate limit', 'too many requests']
+    });
   }
 
   /**
    * Check if error is authentication-related
    */
   static isAuthError(error) {
-    const status = error.response?.status;
-    const message = error.message?.toLowerCase();
-
-    return status === 401 ||
-           status === 403 ||
-           message?.includes('unauthorized') ||
-           message?.includes('forbidden') ||
-           message?.includes('authentication');
+    return this.#checkErrorPattern(error, {
+      statusCheck: (status) => status === 401 || status === 403,
+      errorCodes: [],
+      messagePatterns: ['unauthorized', 'forbidden', 'authentication']
+    });
   }
 
   /**
    * Check if error indicates user not found
    */
   static isUserNotFoundError(error) {
-    const status = error.response?.status;
-    const message = error.message?.toLowerCase();
-
-    return status === 404 ||
-           message?.includes('user not found') ||
-           message?.includes('profile not found') ||
-           message?.includes('does not exist');
+    return this.#checkErrorPattern(error, {
+      statusCheck: (status) => status === 404,
+      errorCodes: [],
+      messagePatterns: ['user not found', 'profile not found', 'does not exist']
+    });
   }
 
   /**
    * Check if error is server-related
    */
   static isServerError(error) {
-    const status = error.response?.status;
-
-    return (status >= 500 && status < 600) ||
-           error.code === 'SERVER_ERROR';
+    return this.#checkErrorPattern(error, {
+      statusCheck: (status) => status >= 500 && status < 600,
+      errorCodes: ['SERVER_ERROR'],
+      messagePatterns: []
+    });
   }
 
   /**
    * Check if error is parsing-related
    */
   static isParsingError(error) {
-    const message = error.message?.toLowerCase();
-
-    return message?.includes('json') ||
-           message?.includes('parse') ||
-           message?.includes('invalid response') ||
-           message?.includes('malformed');
+    return this.#checkErrorPattern(error, {
+      statusCheck: null,
+      errorCodes: [],
+      messagePatterns: ['json', 'parse', 'invalid response', 'malformed']
+    });
   }
 
   /**
    * Check if error is timeout-related
    */
   static isTimeoutError(error) {
-    const message = error.message?.toLowerCase();
-
-    return error.code === 'ETIMEDOUT' ||
-           message?.includes('timeout') ||
-           message?.includes('timed out');
+    return this.#checkErrorPattern(error, {
+      statusCheck: null,
+      errorCodes: ['ETIMEDOUT'],
+      messagePatterns: ['timeout', 'timed out']
+    });
   }
 
   /**
