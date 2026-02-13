@@ -10,6 +10,8 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import Analytics from "./components/Analytics";
 import Goals from "./components/Goals";
 import Recommendations from "./components/Recommendations";
+import PrivacyPolicy from "./components/PrivacyPolicy";
+import TermsConditions from "./components/TermsConditions";
 
 function App() {
   return (
@@ -24,6 +26,9 @@ function App() {
         {/* Public Routes */}
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/privacy" element={<PrivacyPolicy />} />
+        <Route path="/terms" element={<TermsConditions />} />
+
 
         {/* Protected Routes */}
         <Route
