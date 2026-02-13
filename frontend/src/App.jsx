@@ -12,6 +12,7 @@ import Goals from "./components/Goals";
 import Recommendations from "./components/Recommendations";
 import PrivacyPolicy from "./components/PrivacyPolicy";
 import TermsConditions from "./components/TermsConditions";
+import Footer from '../components/Footer';
 
 function App() {
   return (
@@ -105,6 +106,7 @@ function App() {
 
         {/* Catch-all for undefined routes */}
         <Route path="*" element={<Navigate to="/login" replace />} />
+        <Footer />
       </Routes>
     </Router>
   );
